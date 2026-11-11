@@ -1,0 +1,171 @@
+/* =====================  LEVEL 2 · Mixed numbers → improper fractions  ===================== */
+#lvl2{z-index:5;overflow:hidden}
+#lvl2 .bg{object-fit:fill}
+
+/* instruction plank (baked into the background; text sits on it) */
+#l2Plank{position:absolute;left:520px;top:62px;width:880px;height:132px;display:flex;align-items:center;justify-content:center;z-index:20;
+  font-size:66px;font-weight:800;color:#4A2410;letter-spacing:.5px;text-shadow:0 2px 0 rgba(255,255,255,.6)}
+#l2Plank.drop{animation:plankDrop .7s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes plankDrop{from{transform:translateY(-260px) rotate(-3deg)}to{transform:none}}
+#l2Plank.bad{animation:wig .32s linear 3}
+.mix{display:inline-flex;align-items:center;gap:6px;margin:0 14px;vertical-align:middle}
+.mix>b{font-size:1.08em;font-weight:800}
+.fr{display:inline-flex;flex-direction:column;align-items:center;font-size:.62em;line-height:1;font-weight:800}
+.fr>i{font-style:normal;display:block;padding:0 4px}
+.fr>i:first-child{border-bottom:5px solid currentColor;padding-bottom:3px;margin-bottom:3px}
+.mix.glowW>b,.mix.glowF>.fr{color:#D9480F;text-shadow:0 0 16px rgba(255,170,60,.9);animation:kp .8s ease-in-out infinite}
+
+/* progress gems */
+#l2Prog{position:absolute;left:50%;top:206px;transform:translateX(-50%);display:flex;gap:14px;z-index:20}
+#l2Prog i{width:34px;height:34px;border-radius:9px;transform:rotate(45deg);background:rgba(40,20,8,.55);border:3px solid #C9853F;box-shadow:inset 0 0 0 3px rgba(0,0,0,.25)}
+#l2Prog i.on{background:linear-gradient(135deg,#FFF3B0,#F6B73C 45%,#C77700);border-color:#FFF1C9;box-shadow:0 0 16px #FFC84A}
+#l2Prog i.now{animation:kp 1s ease-in-out infinite;border-color:#FFE38A}
+
+/* stones */
+#l2Stones{position:absolute;left:0;right:0;top:252px;height:360px;display:flex;justify-content:center;align-items:center;gap:70px;z-index:10}
+.l2stone{position:relative;flex:none}
+.l2stone svg{width:100%;height:100%;overflow:visible;display:block;filter:drop-shadow(0 14px 10px rgba(0,0,0,.55))}
+.l2stone.pop{animation:stoneIn .55s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes stoneIn{from{transform:scale(.2) translateY(-120px);opacity:0}}
+.l2stone.out{animation:stoneOut .5s ease-in forwards}
+@keyframes stoneOut{to{transform:scale(.4) translateY(80px);opacity:0}}
+.l2stone.wig{animation:wig .32s linear 3}
+.l2stone.redglow svg{filter:drop-shadow(0 0 18px #FF3B2F) drop-shadow(0 0 6px #FF6B5E)}
+.l2stone.goodglow svg{filter:drop-shadow(0 0 22px #FFD25A) drop-shadow(0 0 8px #FFF1A0)}
+.l2stone .part{cursor:pointer}
+.l2stone .part:hover .cover{filter:brightness(1.12)}
+.l2stone .gemPc{transform-box:fill-box;transform-origin:50% 50%}
+.l2stone .gemPc.pop{animation:pop .45s ease-out}
+.l2stone .gemPc.shine{animation:shine 1.2s ease-in-out infinite}
+@keyframes shine{50%{filter:brightness(1.35) drop-shadow(0 0 4px #fff)}}
+.l2stone .label{position:absolute;left:50%;bottom:-62px;transform:translateX(-50%);white-space:nowrap;font-size:30px;font-weight:800;color:#FFF1DA;
+  background:rgba(40,20,8,.82);border:3px solid #C9853F;border-radius:14px;padding:0 14px;animation:fbIn .3s ease-out}
+.l2stone .label.full{background:#2E7D32;border-color:#A5E3A8}
+
+/* trolley */
+#l2Cart{position:absolute;left:96px;top:722px;width:360px;z-index:12}
+#l2Cart img{width:100%;display:block;filter:drop-shadow(0 10px 8px rgba(0,0,0,.5))}
+#l2Cart .load{position:absolute;left:14%;right:14%;bottom:46%;height:60px;display:flex;flex-wrap:wrap-reverse;justify-content:center;z-index:1}
+#l2Cart .load svg{width:40px;height:40px;margin:-10px -4px 0;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+#l2Cart.bump{animation:pop .4s ease-out}
+#l2Cart.in{animation:cartIn 1.4s cubic-bezier(.2,.8,.3,1) both}
+@keyframes cartIn{from{transform:translateX(-700px)}}
+
+/* Chiku */
+#l2Chiku{position:absolute;width:474px;height:440px;z-index:30;pointer-events:none;transition:left .42s cubic-bezier(.4,0,.3,1)}
+#l2Chiku .body{position:absolute;inset:0;transform-origin:45% 98%}
+#l2Chiku .rigbox{width:100%;height:100%}
+#l2Chiku .rigbox>img{width:100%;height:100%;display:block}
+#l2Chiku.idle .body{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{50%{transform:scaleY(1.015) translateY(-2px)}}
+#l2Chiku.walk .body{animation:walkBob .26s ease-in-out infinite}
+@keyframes walkBob{50%{transform:translateY(-14px) rotate(2deg)}}
+#l2Chiku.flip .body{transform:scaleX(-1)}
+#l2Chiku .shadow{position:absolute;left:25%;right:30%;bottom:-6px;height:26px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.5),transparent 70%);z-index:-1}
+#l2Chiku.in{animation:chikuIn 1.3s cubic-bezier(.2,.8,.3,1) both}
+@keyframes chikuIn{from{transform:translateX(-650px)}}
+#l2Chiku .bang{position:absolute;right:-40px;top:-20px;font-weight:800;font-size:62px;color:#FFE38A;-webkit-text-stroke:3px #7A3E12;opacity:0}
+#l2Chiku .bang.go{animation:bang .7s ease-out forwards}
+
+/* speech bubble (Figma bubble art) next to Chiku */
+#l2Say{position:absolute;z-index:40;width:560px;min-height:150px;padding:18px 40px 44px 54px;display:flex;align-items:center;justify-content:center;
+  background:url(../assets/images/ui/speech_bubble.png) center/100% 100% no-repeat;filter:drop-shadow(0 8px 10px rgba(0,0,0,.45));transform-origin:0 100%}
+#l2Say p{margin:0;font-size:36px;line-height:1.12;font-weight:700;color:#3B2414;text-align:center}
+#l2Say p b{color:#C2561A}
+#l2Say.show{animation:bubbleIn .4s cubic-bezier(.3,1.6,.5,1) both}
+#l2Say.bad p{color:#B3261E}
+
+/* DONE + pause */
+#l2Done{position:absolute;left:1468px;top:888px;width:372px;height:150px;border-radius:80px;border:7px solid #FFE07A;cursor:pointer;z-index:30;
+  background:radial-gradient(ellipse 80% 55% at 50% 22%,#B7F59A,transparent 60%),linear-gradient(#5FD13B,#2E9D1E 70%,#1F7A14);
+  box-shadow:0 10px 0 #155C0D,0 16px 22px rgba(0,0,0,.5),inset 0 -6px 0 rgba(0,0,0,.18);
+  font:800 76px/1 'Baloo 2',sans-serif;color:#FFF7B8;letter-spacing:3px;text-shadow:0 4px 0 #1A6A10,0 0 2px #1A6A10;transition:transform .1s}
+#l2Done:hover{transform:translateY(-3px)}
+#l2Done:active{transform:translateY(6px);box-shadow:0 4px 0 #155C0D,0 8px 12px rgba(0,0,0,.5)}
+#l2Done.ready{animation:btnPulse 1.4s ease-in-out infinite}
+#l2Done:disabled{filter:grayscale(.7) brightness(.8);cursor:default}
+#l2Pause{position:absolute;left:22px;top:428px;width:96px;height:96px;border-radius:50%;border:7px solid #fff;cursor:pointer;z-index:30;
+  background:linear-gradient(#FFC93C,#F29A0E);box-shadow:0 6px 14px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;gap:9px}
+#l2Pause i{display:block;width:13px;height:38px;border-radius:4px;background:#fff}
+#l2Paused{position:absolute;inset:0;z-index:150;background:rgba(10,5,2,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px}
+#l2Paused h2{margin:0;font-size:96px;color:#FFE9B8;text-shadow:0 4px 0 #3a1c08}
+
+/* write-it board */
+#l2Board{z-index:60}
+#l2Board .row{display:flex;gap:40px;align-items:center;justify-content:center}
+#l2Board .col{display:flex;flex-direction:column;align-items:center;gap:10px}
+#l2Board .bigmix{font-size:110px;font-weight:800;color:#5A2E0E}
+#l2Board .eq{font-size:80px;font-weight:800;color:#7A3E12}
+#l2Board .pcs{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:560px}
+#l2Board .pcs span{position:relative;width:62px;height:62px}
+#l2Board .pcs span svg{width:100%;height:100%}
+#l2Board .pcs span.lit{animation:pop .4s ease-out;filter:drop-shadow(0 0 10px #FFB347)}
+#l2Board .pcs span i{position:absolute;left:50%;top:-28px;transform:translateX(-50%);font-style:normal;font-weight:800;font-size:28px;color:#C2561A}
+#l2Board .pcs .gap{width:22px}
+#l2Board .ptip{min-height:44px}
+
+/* finale */
+#l2Board .sumList{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 40px;margin:6px 0 20px}
+#l2Board .sumList div{font-size:56px;font-weight:800;color:#5A2E0E;display:flex;align-items:center;justify-content:center;gap:16px}
+
+#l2Dim{position:absolute;inset:0;background:rgba(10,5,2,.55);z-index:55;animation:fadeIn .25s}
+
+#l2Board{padding-top:150px}
+#l2Board h3{margin-top:-20px}
+
+/* ===== v2: reference-style flow ===== */
+/* own plank on top of the painted one, so it can stretch for the "Write …" question */
+#l2Plank{left:50%;top:58px;width:auto;min-width:880px;max-width:1800px;height:140px;transform:translateX(-50%);padding:0 70px;white-space:nowrap;gap:18px;
+  background:radial-gradient(circle at 34px 50%,#B8742F 0 9px,transparent 10px),radial-gradient(circle at calc(100% - 34px) 50%,#B8742F 0 9px,transparent 10px),linear-gradient(#FFF8EA,#F8E3C2);
+  border:9px solid #E0812C;border-radius:70px;box-shadow:0 0 0 4px #7A3510,0 10px 18px rgba(0,0,0,.45),inset 0 -6px 0 rgba(224,129,44,.25)}
+#l2Plank.drop{animation:plankDrop2 .7s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes plankDrop2{from{transform:translate(-50%,-260px) rotate(-3deg)}to{transform:translateX(-50%)}}
+#l2Plank.bad{animation:plankWig .32s linear 3}
+@keyframes plankWig{25%{transform:translateX(calc(-50% - 10px))}75%{transform:translateX(calc(-50% + 10px))}}
+#l2Plank.wide{font-size:50px;height:170px;top:44px}
+#l2Plank.good{border-color:#3FAF5A;box-shadow:0 0 0 4px #1F6E2F,0 0 30px rgba(120,255,140,.6)}
+#l2Prog{top:222px}
+#l2Plank.wide~#l2Prog{top:236px}
+.wq{display:inline-flex;align-items:center;gap:10px}
+.wfrac{display:inline-flex;flex-direction:column;align-items:center;gap:4px;margin-left:10px}
+.wfrac>i{display:block;width:84px;height:6px;border-radius:3px;background:#4A2410}
+.wmix{display:inline-flex;align-items:center;gap:8px;margin-left:10px}
+.wbox{width:76px;height:62px;border-radius:12px;border:4px solid #B9A58F;background:#E9E1D6;font:800 44px/1 'Baloo 2',sans-serif;color:#3B2414;cursor:pointer;padding:0}
+.wmix>.wbox{height:80px;width:80px;font-size:54px}
+.wbox.done{background:#D9D2C8;border-color:#A99883}
+.wbox.on{background:#fff;border:6px solid #3FAF5A;box-shadow:0 0 14px rgba(63,175,90,.6);animation:boxBlink 1.1s ease-in-out infinite}
+@keyframes boxBlink{50%{box-shadow:0 0 22px rgba(63,175,90,.95)}}
+.wbox.red{background:#FFD3CC;border-color:#E5483B;box-shadow:0 0 18px rgba(229,72,59,.7)}
+
+/* number bar at the bottom (reference) */
+#l2Keys{position:absolute;left:0;right:0;bottom:22px;display:flex;justify-content:center;z-index:45}
+#l2Keys.up{animation:barUp .45s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes barUp{from{transform:translateY(180px)}}
+#l2keys{display:flex;gap:12px;padding:16px 22px;border-radius:26px;background:rgba(40,20,8,.78);border:4px solid #C9853F;box-shadow:0 10px 24px rgba(0,0,0,.5)}
+#l2keys button{width:86px;height:92px;border-radius:16px;border:4px solid #9A5A26;background:linear-gradient(#FFFDF8,#F1DDBE);font:800 54px/1 'Baloo 2',sans-serif;color:#3B2414;cursor:pointer;box-shadow:0 6px 0 #7A4318;transition:transform .08s}
+#l2keys button:active{transform:translateY(4px);box-shadow:0 2px 0 #7A4318}
+#l2keys .del{background:linear-gradient(#FF8A7A,#E5483B);border-color:#9E1F14;color:#fff;box-shadow:0 6px 0 #7E160C}
+#l2keys .go{width:150px;font-size:44px;background:linear-gradient(#8EE07F,#3FAF5A);border-color:#1F6E2F;color:#fff;text-shadow:0 2px 0 #1F6E2F;box-shadow:0 6px 0 #155C0D}
+
+/* cart follows Chiku along the rails */
+#l2Cart{top:auto;bottom:70px;transition:left .46s cubic-bezier(.4,0,.3,1)}
+#l2Cart.roll img{animation:bump .2s ease-in-out infinite}
+#l2Chiku{transition:left .46s cubic-bezier(.4,0,.3,1)}
+
+/* falling rock chunks + counting tags */
+.rock{position:absolute;z-index:85;pointer-events:none;border-radius:30% 45% 35% 50%;background:linear-gradient(135deg,#9D8E80,#5E5048);box-shadow:inset -3px -3px 0 rgba(0,0,0,.25)}
+.cnt{position:absolute;z-index:95;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:#FFE38A;border:4px solid #7A3E12;font:800 34px/50px 'Baloo 2',sans-serif;text-align:center;color:#5A2E0E;pointer-events:none;animation:pop .4s ease-out}
+
+/* silhouette tunnel ride between rounds (reference) */
+#l2Ride{position:absolute;inset:0;z-index:140;overflow:hidden;opacity:0;
+  background:radial-gradient(ellipse 70% 55% at 50% 38%,#4B3A6E,#1C1430 60%,#0A0712),#120c1e}
+#l2Ride .rails{position:absolute;left:0;right:0;top:600px;height:60px;
+  background:linear-gradient(#6E5A8E,#6E5A8E) 0 6px/100% 6px no-repeat,linear-gradient(#6E5A8E,#6E5A8E) 0 40px/100% 6px no-repeat,
+  repeating-linear-gradient(90deg,#3A2E52 0 22px,transparent 22px 70px) 0 0/100% 60px no-repeat}
+#l2Ride .sil{position:absolute;left:0;top:250px;width:560px;height:380px}
+#l2Ride .sil img{position:absolute;filter:brightness(0) drop-shadow(0 0 12px rgba(150,120,220,.35))}
+#l2Ride .silChiku{left:140px;top:0;width:330px;animation:bump .28s ease-in-out infinite}
+#l2Ride .silCart{left:40px;bottom:0;width:460px}
+#l2Ride::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 120% 40% at 50% 100%,rgba(120,60,160,.45),transparent 70%)}
+
+#l2Done{display:none!important}
