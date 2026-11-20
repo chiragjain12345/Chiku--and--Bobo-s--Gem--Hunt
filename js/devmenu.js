@@ -13,7 +13,7 @@
   /* ---------------- shared helpers (use game.js globals) ---------------- */
   function resetAll() {
     RUN++; stopIdle(); hush(); storyTap = null;
-    ['story', 'game', 'tunnel', 'lvl2'].forEach(id => $(id).hidden = true);
+    ['story', 'game', 'tunnel', 'lvl2'].forEach(id => $(id).hidden = true); if ($('l2Ctx')) $('l2Ctx').hidden = true;
     $('torch').hidden = true; $('fade').hidden = true; $('fade').classList.remove('on');
     ['bubble', 'narration', 'btnSkip', 'titleCard'].forEach(id => $(id).hidden = true);
     $('storyBg').classList.remove('kenburns'); $('storyBg').style.transform = 'none';
@@ -37,6 +37,7 @@
   const STORY_ITEMS = [
     ['Title screen', () => { resetAll(); showStory(); setBg(STORY[0].bg); $('storyBg').classList.add('kenburns'); $('titleCard').hidden = false; }],
     ['Mine entrance + narrator', () => { resetAll(); showStory(); runStory(1); }],
+    ['Improper fraction lesson + picture questions', () => { resetAll(); showStory(); setBg('story_05_bobo_idea.jpg'); teachImproper(); }],
     ...STORY.slice(1).map((s, k) => [`Scene ${k + 1}: “${s.text.length > 26 ? s.text.slice(0, 24) + '…' : s.text}”`,
       () => { resetAll(); showStory(); runStory(k + 1); }])
   ];
@@ -62,6 +63,7 @@
     ['Ride on → next chamber', i => { setup(i, { split: true, dealt: true }); rideOn(RUN); }]
   ];
 
+  window.__DEV = { STORY_ITEMS, TRANSITIONS, STEPS, resetAll };   // used by automated layout checks
   /* ---------------- menu UI ---------------- */
   function buildMenu() {
     const css = document.createElement('style');
@@ -101,10 +103,12 @@
     LEVELS.forEach((Lv, i) => group(`${Lv.title} · ${Lv.plural} (${Lv.count} ÷ ${Lv.crew.length})`, STEPS.map(([l, f]) => [l, () => f(i)])));
     head('Level 2 · Mixed numbers');
     group('Level 2', [
-      ['Start (with ride-in intro)', () => { resetAll(); L2.start(); }],
-      ...[0, 1, 2, 3, 4, 5].map(i => [`Round ${i + 1} — uncover`, () => { resetAll(); L2.round(i); }]),
-      ['Round 1 — write the fraction', () => { resetAll(); L2.write(0); }],
-      ['Round 4 — write the fraction', () => { resetAll(); L2.write(3); }],
+      ['Story → game (full start)', () => { resetAll(); L2.start(); }],
+      ['Story: back outside, emerald halves', () => { resetAll(); L2.story(['ctx']); }],
+      ['Story: chalkboard 5/2 = 2 1/2', () => { resetAll(); L2.story(['learn']); }],
+      ['Story: the gem list', () => { resetAll(); L2.story(['list']); }],
+      ['Game only (skip story)', () => { resetAll(); L2._start({}); }],
+      ...L2.rounds.map((r, i) => [`Practice ${i + 1}: ${r.w} ${r.n}/${r.d} ${r.name[1]}`, () => { resetAll(); L2.round(i); }]),
       ['Level 2 finale', () => { resetAll(); L2.finale(); }]
     ]);
     head('End');
@@ -145,7 +149,7 @@
   if (d === 'name') { const i = +(q.get('i') || 0); goGame(i); S.n = M(); S.buckets = S.buckets.map(() => L().count); renderTrain(); openName(); if (q.get('h')) { S.nameTries = 1; S.val = { top: '1', bot: '1' }; checkName(); } }
   if (d === 'finale') { goGame(6); finale(); }
   if (d === 'tunnel') { tunnelRide('Chamber 2 · Emeralds'); }
-  if (d === 'torch') { setBg('story_06_bobo_help.jpg'); $('titleCard').hidden = true; loadLevel(0, { silent: true }); $('story').hidden = false; $('game').hidden = true; torchReveal(); }
+  if (d === 'torch') { setBg('story_07_bobo_pointing.jpg'); $('titleCard').hidden = true; loadLevel(0, { silent: true }); $('story').hidden = false; $('game').hidden = true; torchReveal(); }
   if (d === 'auto') {
     SPEED = .3;
     const log = document.createElement('pre'); log.style.cssText = 'position:fixed;left:0;top:0;z-index:9999;background:rgba(255,255,255,.92);font:14px monospace;margin:0;max-height:100vh;overflow:hidden;max-width:50vw;pointer-events:none';

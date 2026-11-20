@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 56" width="200" height="56">
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D8C3AE"/><stop offset=".55" stop-color="#9C7F66"/><stop offset="1" stop-color="#5C4433"/></linearGradient>
+    <linearGradient id="bed" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9A806B"/><stop offset=".2" stop-color="#E2CDB6"/><stop offset=".34" stop-color="#FBEEDC"/><stop offset=".5" stop-color="#C9AE94"/>
+      <stop offset=".66" stop-color="#F0DFCB"/><stop offset=".82" stop-color="#BB9C80"/><stop offset="1" stop-color="#937865"/></linearGradient>
+    <linearGradient id="depth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2A1E" stop-opacity=".55"/><stop offset=".4" stop-color="#3A2A1E" stop-opacity="0"/></linearGradient>
+  </defs>
+  <!-- outer rim (perspective: back edge narrower) -->
+  <path d="M22 4 H178 Q188 4 190 12 L199 44 Q201 54 189 54 H11 Q-1 54 1 44 L10 12 Q12 4 22 4 Z" fill="url(#rim)" stroke="#3E2A1D" stroke-width="2"/>
+  <!-- tray bed -->
+  <path d="M27 10 H173 Q181 10 182 16 L189 42 Q190 48 182 48 H18 Q10 48 11 42 L18 16 Q19 10 27 10 Z" fill="url(#bed)"/>
+  <path d="M27 10 H173 Q181 10 182 16 L189 42 Q190 48 182 48 H18 Q10 48 11 42 L18 16 Q19 10 27 10 Z" fill="url(#depth)"/>
+  <path d="M14 47 H186" stroke="#fff" stroke-opacity=".5" stroke-width="1.4"/>
+  <path d="M3 50 H197" stroke="#2A1C12" stroke-opacity=".45" stroke-width="2"/>
+</svg>

@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8E%3C/text%3E%3C/svg%3E">
 <title>Chiku and Bobo's Gem Hunt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/level2.css">
+<link rel="stylesheet" href="css/style.css?v=1795170105">
+<link rel="stylesheet" href="css/level2.css?v=1795170105">
 </head>
 <body>
 <div id="app">
@@ -47,8 +51,10 @@
     <!-- ================= LEVEL 2 ================= -->
     <section id="lvl2" class="layer" hidden>
       <img class="bg full" src="assets/images/backgrounds/level2_bg.jpg" alt="">
+      <div id="l2BgPatch" aria-hidden="true"></div>
       <div id="l2Plank"></div>
       <div id="l2Prog"></div>
+      <div id="l2Count" hidden></div>
       <div id="l2Stones"></div>
       <div id="l2Cart"><div class="load"></div><img src="assets/images/props/trolley.png" alt=""></div>
       <div id="l2Chiku" class="idle"></div>
@@ -76,9 +82,11 @@
 <!-- shared SVG defs (stone texture + gem gradients) -->
 <svg id="defs" width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="defsInner"></defs></svg>
 
-<script src="js/game.js"></script>
-<script src="js/level2.js"></script>
+<script src="js/game.js?v=1795170105"></script>
+<script src="js/teach_improper.js?v=1795170105"></script>
+<script src="js/level2.js?v=1795170105"></script>
+<script src="js/level2_story.js?v=1795170105"></script>
 <!-- TEMPORARY dev menu (open with ?dev=1). Delete this line + js/devmenu.js when the game is finished. -->
-<script src="js/devmenu.js"></script>
+<script src="js/devmenu.js?v=1795170105"></script>
 </body>
 </html>

@@ -169,3 +169,224 @@
 #l2Ride::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 120% 40% at 50% 100%,rgba(120,60,160,.45),transparent 70%)}
 
 #l2Done{display:none!important}
+
+/* ===== sheet feedback (Level 2) ===== */
+#l2Count{position:absolute;right:120px;top:240px;z-index:21;padding:8px 26px;border-radius:999px;background:linear-gradient(#FFF8EA,#F3DDBA);border:5px solid #C9853F;
+  font:800 38px/1.2 'Baloo 2',sans-serif;color:#4A2410;box-shadow:0 6px 14px rgba(0,0,0,.45);display:flex;align-items:center;gap:10px}
+#l2Count .mix{margin:0}
+#l2Count.tick{animation:pop .35s ease-out}
+#l2Count.bad{border-color:#E5483B;background:linear-gradient(#FFE3DE,#FFC7BD);box-shadow:0 0 26px rgba(229,72,59,.85),0 6px 14px rgba(0,0,0,.45);animation:wig .32s linear 3}
+#l2Count.good{border-color:#3FAF5A;background:linear-gradient(#E9FBE5,#C8F2BF);box-shadow:0 0 26px rgba(63,175,90,.85)}
+.l2stone .part.redpart polygon,.l2stone .part.redpart .cover{filter:drop-shadow(0 0 3px #FF3B2F) drop-shadow(0 0 2px #FF3B2F)}
+.l2stone .part.redpart{animation:redFlash .4s ease-in-out 4}
+@keyframes redFlash{50%{opacity:.55}}
+.l2stone.hintglow svg{filter:drop-shadow(0 0 22px #FFD25A) drop-shadow(0 0 8px #FFF1A0)}
+.l2stone .part.pulsepart{animation:partPulse .8s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes partPulse{50%{transform:scale(1.08);filter:brightness(1.35) drop-shadow(0 0 4px #FFE38A)}}
+.l2stone .ghost{animation:ghostPulse 1.2s ease-in-out infinite}
+@keyframes ghostPulse{50%{fill:rgba(255,226,140,.5)}}
+
+/* ===== Level 2 context story ===== */
+#l2Ctx{z-index:160;background:#1a0f0a;overflow:hidden}
+#l2Ctx .bg{object-fit:cover}
+#cxTint,#cxStage{position:absolute;inset:0}
+#cxStage{pointer-events:none}
+#cxSkip{position:absolute;right:30px;bottom:26px;z-index:5}
+#cxBubble{position:absolute;z-index:4}
+#cxBubble p{text-align:center;font-weight:700;color:#3B2414;line-height:1.12;margin:0}
+.cxActor{position:absolute}
+.cxActor>img,.cxActor>.lb>img{width:100%;display:block;filter:drop-shadow(0 12px 10px rgba(0,0,0,.45))}
+.cxActor>.lb{position:relative}
+.cxActor.nod>.lb{animation:nod 1s ease-in-out 3;transform-origin:50% 90%}
+@keyframes nod{30%{transform:rotate(-4deg) translateY(6px)}60%{transform:rotate(3deg)}}
+.cxSack svg{width:100%;display:block;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
+.cxSack{transform-origin:50% 100%}
+.cxRock{position:relative;height:420px;border-radius:48% 52% 30% 30%/40% 40% 22% 22%;
+  background:radial-gradient(ellipse at 40% 25%,#B9A797,#8A7766 45%,#5D4E43 85%);box-shadow:inset 0 -24px 40px rgba(0,0,0,.35),0 24px 30px rgba(0,0,0,.45)}
+.cxCloth{position:absolute;left:12%;right:10%;top:12%;height:58%;border-radius:22px;transform:perspective(900px) rotateX(38deg);
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.18) 0 18px,transparent 18px 36px),repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 18px,transparent 18px 36px),#B8322E;
+  box-shadow:0 10px 18px rgba(0,0,0,.4);border:5px solid #E4C9A3}
+.cxActor.half svg{filter:drop-shadow(0 6px 5px rgba(0,0,0,.5))}
+.cxActor.whole svg{filter:drop-shadow(0 0 16px #8CFFC8) drop-shadow(0 6px 5px rgba(0,0,0,.5))}
+.cxActor.glowHalf svg{animation:halfGlow 1s ease-in-out infinite}
+@keyframes halfGlow{50%{filter:drop-shadow(0 0 20px #FFE38A) drop-shadow(0 6px 5px rgba(0,0,0,.5))}}
+/* chalkboard */
+.chalk{position:relative;width:1500px;height:760px;border-radius:26px;border:26px solid #7A4A26;
+  box-shadow:inset 0 0 0 6px #4A2A12,0 20px 40px rgba(0,0,0,.55);
+  background:radial-gradient(ellipse at 50% 40%,#3E5A4B,#2A4034 70%),#2A4034}
+.chalk svg{position:absolute;inset:0;width:100%;height:100%}
+.chalk .ck{fill:rgba(255,255,255,.12);stroke:#F4F2EA;stroke-width:6;stroke-linejoin:round}
+.chalk .ckArrow{fill:none;stroke-width:6;stroke-dasharray:14 10;stroke-linecap:round;animation:ckDash .8s linear infinite}
+@keyframes ckDash{to{stroke-dashoffset:-48}}
+#ckHtml{position:absolute;inset:0}
+.ckLab{position:absolute;transform:translate(-50%,0);color:#F4F2EA;font:800 70px/1 'Baloo 2',sans-serif;transition:left .7s cubic-bezier(.5,0,.3,1.3),opacity .4s;animation:fbIn .4s ease-out}
+.ckLab.big{font-size:110px}
+.ckLab.huge{font-size:200px;transform:none}
+.ckLab .fr{font-size:.62em}
+.ckLab .fr>i:first-child{border-bottom-width:6px}
+.ckLab.glow{color:#FFE38A;text-shadow:0 0 18px rgba(255,227,138,.9)}
+.ckLab.def{transform:none;font-size:52px;line-height:1.2;font-weight:700}
+.ckLab.def b{color:#FFE38A}
+/* list */
+.cxRoll{width:160px;height:46px;border-radius:23px;background:linear-gradient(#FFF3D6,#E7C996);border:4px solid #A6773E;box-shadow:0 6px 10px rgba(0,0,0,.4)}
+.cxList{padding:30px 46px 34px;border-radius:24px;background:linear-gradient(#FFF8E6,#F2DDB4);border:7px solid #A6773E;box-shadow:0 18px 30px rgba(0,0,0,.5);color:#4A2410}
+.cxList h4{margin:0 0 10px;text-align:center;font:800 56px/1 'Baloo 2',sans-serif;color:#7A3E12}
+.cxList ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.cxList li{display:flex;align-items:center;gap:20px;font:800 46px/1.1 'Baloo 2',sans-serif}
+.cxList li em{font-style:normal;font-size:38px;font-weight:700;color:#7A3E12}
+.cxList .gi{width:56px;display:flex;justify-content:center}
+.cxList .fr{font-size:.7em}
+.ckLab.huge{color:#F4F2EA}
+.ckLab .mix{display:inline-flex;align-items:center;gap:10px}
+.ckGlow{color:#FFE38A;text-shadow:0 0 18px rgba(255,227,138,.9)}
+
+.l2stone .cover.recover{animation:recover .5s cubic-bezier(.3,1.5,.5,1) both;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes recover{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.l2stone .gemPc{cursor:default}
+
+/* gem list pinned at the side (sheet: list with the current order highlighted, tick when done) */
+#l2List{position:absolute;left:30px;top:24px;z-index:22;width:330px;padding:12px 16px 14px;border-radius:18px;background:linear-gradient(#FFF8E6,#F2DDB4);
+  border:5px solid #A6773E;box-shadow:0 10px 18px rgba(0,0,0,.45);color:#4A2410;transform:rotate(-1.5deg)}
+#l2List h4{margin:0 0 6px;font:800 28px/1 'Baloo 2',sans-serif;color:#7A3E12;display:flex;justify-content:space-between;align-items:baseline}
+#l2List h4 span{font-size:20px;color:#2E7D32}
+#l2List ul{margin:0;padding:0;list-style:none}
+#l2List li{display:flex;align-items:center;gap:8px;font:800 24px/1.25 'Baloo 2',sans-serif;padding:1px 6px;border-radius:8px;opacity:.75}
+#l2List li i{width:22px;font-style:normal;color:#2E7D32}
+#l2List li .mix{margin:0;font-size:22px}
+#l2List li em{font-style:normal;font-weight:700;font-size:20px}
+#l2List li.now{opacity:1;background:#FFE08A;box-shadow:0 0 0 3px #F6B73C}
+#l2List li.done{opacity:1}
+#l2List li.tickPop i{animation:pop .5s ease-out}
+#l2Pause{top:470px}
+#l2Board .sumList{grid-template-columns:repeat(2,1fr)}
+#l2Board .sumList div{font-size:46px;justify-content:flex-start}
+#l2Board .sumList .tk{color:#2E7D32}
+#l2Board .sumList em{font-style:normal;font-size:36px;color:#7A3E12}
+#l2List li .blank{font:800 22px/1 'Baloo 2',sans-serif;color:#B79B7A;letter-spacing:1px}
+#l2List li.writing{background:#FFF3B0;box-shadow:0 0 0 3px #F6B73C,0 0 16px rgba(246,183,60,.8);animation:kp 1.2s ease-in-out infinite}
+#l2List li.done .mix{color:#2E7D32}
+#l2Plank.wide{left:50%;min-width:880px}
+/* L2 context: picnic mat + tags */
+.cxMat{width:100%;display:block;overflow:visible}
+.cxTag{margin:0 auto;width:max-content;padding:9px 24px 5px;line-height:1!important;border-radius:30px;background:#FFF6E2;border:4px solid #A6773E;color:#5A2E0E;font:800 34px/1.1 'Baloo 2',sans-serif;box-shadow:0 6px 10px rgba(0,0,0,.35)}
+.cxTag.half{background:#FFE9A8;border-color:#C99224}
+/* L2 chalkboard: speakers below the board */
+.cxActor.ckSpk{z-index:3;transition:filter .3s,transform .3s}
+.cxActor.ckSpk:not(.on)>.lb{filter:brightness(.72)}
+.cxActor.ckSpk.talking>.lb{animation:talk .5s ease-in-out 2;transform-origin:50% 100%}
+#cxBubble.flip{background:none}
+#cxBubble.flip::before{content:'';position:absolute;inset:0;z-index:-1;background:url(../assets/images/ui/speech_bubble.png) center/100% 100% no-repeat;transform:scaleX(-1)}
+/* eyes that look around (L2 story) */
+.cxEye{position:absolute;border-radius:50%;overflow:hidden;background:#fff;pointer-events:none;
+  -webkit-mask-image:radial-gradient(closest-side,#000 60%,transparent 100%);mask-image:radial-gradient(closest-side,#000 60%,transparent 100%)}
+.cxEye>i{position:absolute;inset:0;background-repeat:no-repeat;transform:translate(calc(var(--lx,0)*17%),calc(var(--ly,0)*12%));transition:transform .35s ease-out}
+/* L2 mat scene polish */
+.cxPool{height:640px;border-radius:50%;background:radial-gradient(ellipse at 50% 60%,rgba(255,214,140,.55),rgba(255,170,80,.18) 45%,transparent 70%);mix-blend-mode:screen;animation:poolPulse 4s ease-in-out infinite}
+@keyframes poolPulse{50%{opacity:.75}}
+.cxMotes{position:relative;height:760px}
+.cxMotes i{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(#FFF6C8,rgba(255,220,120,0) 70%);animation:mote 6s ease-in-out infinite}
+@keyframes mote{0%,100%{transform:translate(0,0);opacity:0}30%{opacity:.9}60%{transform:translate(30px,-60px);opacity:.6}}
+.cxTally{width:max-content;margin-left:auto;display:flex;flex-direction:column;gap:10px;padding:18px 26px;border-radius:22px;background:linear-gradient(#FFF8E6,#F2DDB4);border:7px solid #A6773E;box-shadow:0 14px 26px rgba(0,0,0,.45),inset 0 0 0 3px #FFF3D6}
+.cxTally>div{display:flex;align-items:center;gap:16px;font:800 46px/1 'Baloo 2',sans-serif;color:#5A2E0E}
+.cxTally .ti{width:60px;display:flex;justify-content:center}
+.cxTally b{min-width:40px;text-align:center;display:inline-block}
+.cxTally em{font-style:normal;font-size:38px;color:#7A3E12}
+#cxBubble p{text-wrap:balance}
+/* ---- chalkboard polish (L2 learning) ---- */
+.chalk{border-color:transparent!important;box-shadow:inset 0 0 0 6px #4A2A12,inset 0 0 40px rgba(0,0,0,.35),0 20px 40px rgba(0,0,0,.55)!important;
+ background:radial-gradient(ellipse at 22% 28%,rgba(255,255,255,.07),transparent 38%) padding-box,radial-gradient(ellipse at 78% 72%,rgba(255,255,255,.06),transparent 40%) padding-box,radial-gradient(ellipse at 50% 45%,#40604F,#2A4034 72%) padding-box,radial-gradient(circle at 13px 13px,#F3D7A0 0 5px,#5E3519 6px 8px,transparent 9px) border-box,radial-gradient(circle at calc(100% - 13px) 13px,#F3D7A0 0 5px,#5E3519 6px 8px,transparent 9px) border-box,radial-gradient(circle at 13px calc(100% - 13px),#F3D7A0 0 5px,#5E3519 6px 8px,transparent 9px) border-box,radial-gradient(circle at calc(100% - 13px) calc(100% - 13px),#F3D7A0 0 5px,#5E3519 6px 8px,transparent 9px) border-box,repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 3px,transparent 3px 22px,rgba(255,255,255,.07) 22px 24px,transparent 24px 41px) border-box,linear-gradient(#A26A3A,#7A4A26 55%,#5E3519) border-box!important}
+.ckTray{position:absolute;left:8%;right:8%;bottom:-48px;height:24px;border-radius:6px;background:linear-gradient(#A8713F,#6B3E1E);box-shadow:0 8px 12px rgba(0,0,0,.45)}
+.ckTray i{position:absolute;bottom:14px}
+.ckTray .stick{width:70px;height:13px;border-radius:7px;background:linear-gradient(#fff,#DCD8CC)}
+.ckTray .stick.a{left:10%;transform:rotate(-4deg)}.ckTray .stick.b{left:17%;width:46px;background:linear-gradient(#FFF1A8,#E8C95A)}.ckTray .stick.c{left:23%;width:40px;background:linear-gradient(#BDF2FF,#7FCFE6)}
+.ckTray .eraser{right:12%;width:130px;height:38px;bottom:12px;border-radius:8px;background:linear-gradient(#F4F2EA 0 30%,#3E2A1C 30%);box-shadow:inset 0 -3px 0 rgba(0,0,0,.3)}
+.chalk .ck.em,.chalk .ck.em *{fill:rgba(88,224,150,.30);stroke:#F4F2EA;stroke-width:6;stroke-linejoin:round;filter:url(#chalkF)}
+.chalk .ck.em{transform-box:fill-box;transform-origin:center;transition:fill .4s}
+.chalk .ck.em.lit{stroke:#FFE38A;stroke-width:9}
+.chalk .ck.em.whole,.chalk .ck.em.whole *{fill:rgba(88,224,150,.48)}
+.ckLab{text-shadow:0 0 6px rgba(255,255,255,.25)}
+.ckLab.tag{font-size:42px;font-weight:700;color:#C9F5DC;white-space:nowrap;transition:left .7s cubic-bezier(.5,0,.3,1.3),opacity .4s}
+.ckLab.tag .fr{font-size:1em}
+.ckLab.tag.w{color:#FFE38A}
+.ckLab.num{font-size:60px;color:#FFE38A;transition:opacity .3s}
+.chalk .ck.em *{filter:none!important}
+/* hide the sign painted into level2_bg.jpg (our own #l2Plank is the only plank): rock wall patch from just below, soft edges */
+#l2BgPatch{position:absolute;left:470px;top:6px;width:985px;height:232px;pointer-events:none;
+  background:url(../assets/images/backgrounds/level2_bg.jpg) -470px -236px/1920px 1080px no-repeat;filter:brightness(.82);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent),linear-gradient(transparent,#000 22px,#000 calc(100% - 30px),transparent);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent),linear-gradient(transparent,#000 22px,#000 calc(100% - 30px),transparent);mask-composite:intersect}
+/* cart load: a heap inside the bed, behind the front wall */
+#l2Cart img{position:relative;z-index:2}
+#l2Cart .load{display:block!important;left:12%!important;right:12%!important;top:-6%!important;bottom:auto!important;height:46%!important;z-index:1!important}
+#l2Cart .load>svg{position:absolute;width:52px!important;height:52px!important;margin:0!important}
+/* the bed is painted solid, so the heap sits on top and is clipped at the front wall's top edge (40% of the cart) — reads as "inside" */
+#l2Cart .load{top:-34%!important;height:76%!important;z-index:3!important;overflow:hidden}
+
+/* gem record: fixed columns so ticks, amounts and names line up */
+#l2List{width:340px}
+#l2List li{display:grid!important;grid-template-columns:24px 76px 1fr;align-items:center;column-gap:6px;min-height:44px;padding:2px 8px}
+#l2List li i{width:auto;text-align:center;font-size:24px}
+#l2List li .amt{display:flex;align-items:center}
+#l2List li .amt .mix{gap:3px}
+#l2List li .amt .fr{font-size:15px;line-height:1}
+#l2List li .blank{padding-left:2px}
+#l2List li em{white-space:nowrap}
+#l2List{transform:none!important}
+#l2List li{grid-template-columns:24px 58px 1fr;min-height:38px;line-height:1}
+#l2List li .amt .mix{font-size:22px!important}
+#l2List li .amt .fr{font-size:13px!important}
+#l2List li .amt .fr>i{padding:0 2px}
+#l2List li{min-height:34px}
+#l2List li .amt .fr>i{font-size:13px!important;line-height:1.05}
+#l2List li .amt .fr>i{font-size:16px!important}
+/* stones stay centred; the Gem record card is scaled down so it ends above the stone row */
+#l2Stones{gap:44px!important}
+#l2List{transform:scale(.88)!important;transform-origin:0 0;left:24px!important;top:16px!important}
+/* answer reveal: 3rd wrong flashes it, 4th attempt it is written in and only OK works */
+#l2Plank.flashAns .wbox{background:#DFF7E4!important;border-color:#2FBF71!important;color:#1F6E2F;animation:ansFlash .45s ease-in-out 4}
+@keyframes ansFlash{50%{box-shadow:0 0 0 6px rgba(47,191,113,.5),0 0 24px rgba(47,191,113,.8)}}
+#l2Plank.locked .wbox{pointer-events:none}
+#l2keys.lockAns button:not(.go){opacity:.35;pointer-events:none;filter:grayscale(.6)}
+#l2keys.lockAns .go{animation:kp 1s ease-in-out infinite}
+/* Bobo the collector (Level 2) */
+#l2Bobo{position:absolute;width:250px;height:336px;z-index:29;pointer-events:none;transition:left .8s linear}
+#l2Bobo .body{position:absolute;inset:0;transform-origin:50% 98%}
+#l2Bobo .rigbox{width:100%;height:100%}
+#l2Bobo .rigbox>img{width:100%;height:100%;display:block;filter:drop-shadow(0 10px 8px rgba(0,0,0,.45))}
+#l2Bobo .shadow{position:absolute;left:20%;right:20%;bottom:-6px;height:22px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.5),transparent 70%)}
+#l2Bobo.idle .body{animation:breathe 2.4s ease-in-out infinite}
+#l2Bobo.walk .body{animation:walkBob .26s ease-in-out infinite}
+#l2Bobo.flip .rigbox{transform:scaleX(-1)}
+#l2Bobo .bsack{position:absolute;left:-18px;top:150px;width:110px;transform-origin:50% 100%}
+#l2Bobo .bsack svg{width:100%;display:block;filter:drop-shadow(0 6px 6px rgba(0,0,0,.45))}
+#l2Bobo .bcnt{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);font:800 34px/1 'Baloo 2',sans-serif;color:#fff;-webkit-text-stroke:2px #5A2E0E;font-style:normal}
+#l2Bobo.got .bsack{animation:pop .35s ease-out}
+#l2Bobo.reach .body{animation:reach .5s ease-out}
+@keyframes reach{40%{transform:translateY(-30px) scale(1.04)}}
+#l2Bobo.tip .bsack{transition:transform .35s;transform:rotate(-70deg) translate(-20px,-30px)}
+#l2Bobo{z-index:31}
+#l2Count{display:none!important}   /* the side 'Uncovered' counter is not shown */
+.l2stone.emptied{background:none!important;border-color:transparent!important;box-shadow:none!important;outline:none!important}
+.l2stone.emptied>*:not(svg){display:none}
+/* Level 2 end board: everything kept inside the frame (clear of the lantern and pickaxes) */
+#l2Board{box-sizing:border-box;padding:150px 190px 80px!important}
+#l2Board h3{font-size:52px}
+#l2Board .ptip{font-size:30px!important;line-height:1.25;margin:4px auto 10px!important}
+#l2Board .sumList{grid-template-columns:repeat(4,auto)!important;justify-content:center;gap:10px 46px!important;margin:6px 0 22px!important}
+#l2Board .sumList div{font-size:40px!important}
+#l2Board .sumList em{font-size:30px!important}
+#l2Board .sumList em{white-space:nowrap}
+#l2Board .ptip{text-wrap:balance}
+.l2stone .label{bottom:-14px!important;font-size:26px!important;z-index:2}
+.cxList ul{gap:12px!important}
+#l2List li{min-height:40px!important}
+#l2Board h3{margin-bottom:14px!important}
+#l2List h4{margin-bottom:12px!important}
+#l2List li{min-height:46px!important}
+#l2List ul{display:flex;flex-direction:column;gap:2px}
+#l2List{left:112px!important;top:14px!important}
+#l2List{transform:scale(.76)!important;top:8px!important}
+#l2List li{min-height:40px!important}
+#l2List h4{margin-bottom:8px!important}
+#l2List li{min-height:36px!important;padding-top:0!important;padding-bottom:0!important}
+#l2List li .amt .mix{line-height:1}

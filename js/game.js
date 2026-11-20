@@ -58,7 +58,7 @@ const STORY = [
   { bg: 'story_04_chamber_stones.jpg', who: 'Chiku', text: '3 covered stones!', box: [349, 108, 510, 170], fs: 48, rings: [[62.5, 45.5, 9.8, 19.6], [75.1, 45.2, 9.8, 20], [89.2, 45, 10.4, 20.6]], enter: 'cave' },
   { bg: 'story_04_chamber_stones.jpg', who: 'Chiku', text: 'One for you and one for me. But one stone is left.', box: [349, 108, 510, 170], fs: 35 },
   { bg: 'story_04_chamber_stones.jpg', who: 'Chiku', text: 'How do we share 3 stones equally?', box: [349, 108, 510, 170], fs: 40 },
-  { bg: 'story_05_bobo_idea.jpg', who: 'Bobo', text: 'By forming improper fractions!', box: [1128, 57, 594, 198], fs: 48, enter: 'whoosh' },
+  { bg: 'story_05_bobo_idea.jpg', who: 'Bobo', text: 'By forming improper fractions!', box: [1128, 57, 594, 198], fs: 48, enter: 'whoosh', teach: true },
   { bg: 'story_07_bobo_pointing.jpg', who: 'Bobo', text: 'Can you help us?', box: [1150, 50, 540, 180], fs: 56, enter: 'cut' }
 ];
 
@@ -342,6 +342,39 @@ setInterval(() => {
   }
 }, 90);
 
+/* ===================== INCORRECT FEEDBACK (sheet columns G–J) =====================
+   Attempt 1: "Oops! Try again." pop + red glow and wiggle on what was tapped.
+   Attempt 2: hint card (💡 Hint) + the hint animation, stays until the next right step. */
+function oops(el, text = 'Oops! Try again.', below = false) {
+  SFX.bad();
+  if (el) { el.classList.remove('fbRed'); void el.offsetWidth; el.classList.add('fbRed'); wig(el); setTimeout(() => el.classList.remove('fbRed'), 1600); }
+  document.querySelectorAll('.oopsPop').forEach(e => e.remove());
+  const p = document.createElement('div'); p.className = 'oopsPop'; p.innerHTML = `<i>✕</i><span>${text}</span>`;
+  const r = el ? rel(el) : { cx: 960, y: 520 };
+  if (el && el.closest && el.closest('#board')) below = true;   // on a board: badge goes under the item, never over the heading
+  p.style.left = Math.max(260, Math.min(1660, r.cx)) + 'px'; p.style.top = (below ? r.y + r.h + 92 : Math.max(150, r.y - 20)) + 'px';
+  stage.appendChild(p); setTimeout(() => p.remove(), 1900);
+}
+function hintCard(text) {
+  document.querySelectorAll('.oopsPop').forEach(e => e.remove());   // the hint replaces the Oops badge (never on top of each other)
+  // a board is open: show the hint inside it, so it never covers the keys or the Check button
+  const boardOpen = !$('board').hidden, tipEl = boardOpen && ($('hintSlot') || $('ptip'));
+  if (tipEl) { tipEl.classList.remove('bad'); if (!tipEl.dataset.orig) tipEl.dataset.orig = tipEl.innerHTML; tipEl.innerHTML = `<span class="hintInline"><b class="bulb">💡</b> ${text}</span>`; SFX.sparkle(); return; }
+  // Level 1 without a board: the instruction bar itself becomes the hint
+  if (!$('game').hidden) { const v = $('vo'); v.classList.add('hint'); SFX.sparkle(); return; }
+  let c = $('hintCard');
+  if (!c) { c = document.createElement('div'); c.id = 'hintCard'; stage.appendChild(c); }
+  c.innerHTML = `<b class="bulb">💡</b><p>${text}</p>`;
+  // Level 2: sit above the number bar so the keys stay tappable
+  c.classList.toggle('l2', !$('lvl2').hidden);
+  c.classList.remove('show'); void c.offsetWidth; c.classList.add('show'); c.hidden = false;
+  SFX.sparkle();
+}
+function hideHint() {
+  const c = $('hintCard'); if (c) c.hidden = true; $('vo').classList.remove('hint');
+  ['hintSlot', 'ptip'].forEach(id => { const t = $(id); if (t && t.querySelector('.hintInline')) { t.innerHTML = t.dataset.orig && id === 'hintSlot' ? t.dataset.orig : ''; delete t.dataset.orig; } });
+}
+
 /* ===================== HAND POINTER + IDLE ===================== */
 const hand = $('hand');
 let traceAnim = 0;
@@ -390,15 +423,18 @@ function stopIdle() { clearTimeout(idleT); idleCfg = null; handHide(); }
 /* ===================== VO BAR + FEEDBACK ===================== */
 function say(who, text) {
   $('voAv').innerHTML = avatarHTML(who);
-  $('voLine').innerHTML = `<span><b>${who}:</b> ${String(text).replace(/(\d+\/\d+)/g, '<b>$1</b>')}</span>`;
+  { const n = String(text).length; $('voLine').classList.toggle('long', n > 60 && n <= 85); $('voLine').classList.toggle('xlong', n > 85); }
+  $('voLine').innerHTML = `<span>${String(text).replace(/(\d+\/\d+)/g, '<b>$1</b>')}</span>`;
   const vo = $('vo'); vo.classList.remove('pop'); void vo.offsetWidth; vo.classList.add('pop');
   const av = $('voAv'); av.classList.remove('talk'); void av.offsetWidth; av.classList.add('talk');
   return speak(text, who);
 }
 let fbT = null;
+/* Level 1: all instructions and feedback live in the top instruction panel only.
+   The old centre pill is switched off so the same text never shows in two places. */
 function fb(t, cls, ms = 0) {
   const f = $('fb'); clearTimeout(fbT);
-  if (!t) { f.hidden = true; return; }
+  f.hidden = true; return;
   f.innerHTML = t; f.className = cls || ''; f.hidden = false; f.style.animation = 'none'; void f.offsetWidth; f.style.animation = '';
   if (ms) fbT = setTimeout(() => f.hidden = true, ms);
 }
@@ -441,10 +477,23 @@ function loadLevel(i, opts = {}) {
   S.cutDone = Array(Lv.count).fill(false); S.split = Array(Lv.count).fill(false); S.dealt = Array(Lv.count).fill(false);
   S.rev = Array(Lv.count).fill(0); S.buckets = Array(M()).fill(0);
   $('jump').value = i; $('btnAgain').hidden = true; closeBoard(); fb(null);
-  const tr = $('train'); tr.className = '';
+  // reset the trolley instantly (no slide back from where the last ride left it)
+  const tr = $('train'); tr.style.transition = 'none'; tr.className = ''; tr.getAnimations().forEach(x => x.cancel());
+  tr.style.transform = opts.rollin ? 'translateX(-1700px)' : ''; void tr.offsetWidth; tr.style.transition = '';
   renderTrain(opts.anim ? Lv.join : null); renderWall();
-  if (opts.rollin) { tr.classList.add('rollin', 'bump'); SFX.rumble(1.4); setTimeout(() => tr.classList.remove('rollin', 'bump'), 1700); }
-  if (!opts.silent) beginLevel(RUN, opts.rollin ? 1500 : 300);
+  const rid = RUN;
+  if (opts.rollin) {
+    // roll in from the left, stop in place, and only then start the chamber
+    tr.classList.add('bump'); SFX.rumble(1.4);
+    const a = tr.animate([{ transform: 'translateX(-1700px)' }, { transform: 'translateX(0)' }], { duration: 1600, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' });
+    a.finished.then(() => {
+      if (rid !== RUN) return;
+      a.cancel(); tr.style.transform = ''; tr.classList.remove('bump');
+      SFX.tap(); if (!opts.silent) beginLevel(rid, 150);
+    }).catch(() => {});
+    return;
+  }
+  if (!opts.silent) beginLevel(RUN, 300);
 }
 async function beginLevel(rid, delay = 300) {
   const Lv = L();
@@ -482,6 +531,18 @@ function renderTrain(joinMap) {
   setHintSeats(S.hint);
 }
 function setHintSeats(on) {
+  // the cut board is open: number the miner faces on the board itself (never lift the trolley over the board)
+  const row = $('faceRow');
+  if (row) {
+    $('train').style.zIndex = '';
+    row.classList.toggle('hintOn', !!on);
+    row.querySelectorAll('.face').forEach((f, k) => {
+      let b = f.querySelector('.fbadge');
+      if (on && !b) { b = document.createElement('i'); b.className = 'fbadge'; b.textContent = k + 1; f.appendChild(b); }
+      if (!on && b) b.remove();
+    });
+    return;
+  }
   for (let k = 0; k < M(); k++) {
     const s = $('seat' + k); if (!s) continue;
     s.classList.toggle('glow', !!on);
@@ -492,10 +553,23 @@ function setHintSeats(on) {
 }
 function fillPile(k) {
   const p = $('pile' + k); if (!p) return;
-  const pc = S.n ? pieces(L().shape, S.n)[k % S.n] : null; let h = '';
+  const pc = S.n ? pieces(L().shape, S.n)[0] : null; let h = '';   // same piece shape & direction in every tray
   const n = S.buckets[k], had = p.children.length;
-  for (let j = 0; j < n; j++) h += pieceMini(L(), pc).replace('<svg ', `<svg style="transform:rotate(${((j * 37) % 16) - 8}deg)" ${j >= had && had ? 'class="new" ' : ''}`);
-  p.innerHTML = h; p.style.setProperty('--ps', (n <= 3 ? 60 : n <= 5 ? 54 : n <= 7 ? 48 : 44) + 'px');
+  // lay the pieces out in a balanced grid inside the tray bed, keeping each piece's real shape
+  const BW = 146, BH = 34;
+  let aw = 1, ah = 1;
+  if (pc) { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; pc.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }); aw = x1 - x0 + 8; ah = y1 - y0 + 8; }
+  let best = { size: 0, r: 1, c: Math.max(n, 1) };
+  for (let r = 1; r <= 3; r++) {
+    const c = Math.ceil(Math.max(n, 1) / r), cw = BW / c, ch = BH / r;
+    const sc = Math.min(cw / aw, ch / ah) * Math.max(aw, ah);       // longest side of the fitted piece
+    if (sc > best.size + .5) best = { size: sc, r, c };
+  }
+  const cw = BW / best.c, ch = BH / best.r;
+  const tight = (() => { if (!pc) return ''; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; pc.forEach(([x, y]) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); });
+    return `viewBox="${(x0 - 4).toFixed(1)} ${(y0 - 4).toFixed(1)} ${(x1 - x0 + 8).toFixed(1)} ${(y1 - y0 + 8).toFixed(1)}"`; })();
+  for (let j = 0; j < n; j++) h += pieceMini(L(), pc).replace(/viewBox="[^"]*"/, tight).replace('<svg ', `<svg style="width:${cw.toFixed(1)}px;height:${ch.toFixed(1)}px" ${j >= had && had ? 'class="new" ' : ''}`);
+  p.innerHTML = h;
   $('tag' + k).textContent = `${L().crew[k]} · ` + (S.buckets[k] && S.n ? `${S.buckets[k]}/${S.n}` : '0');
 }
 
@@ -535,61 +609,101 @@ function onGem(g) {
 
 /* ---------- board ---------- */
 function showBoard(html, width) {
-  const b = $('board'); b.innerHTML = html; b.style.width = width + 'px'; b.hidden = false; b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
+  document.querySelectorAll('.oopsPop').forEach(e => e.remove());   // no stale Oops badge on a new board
+  const b = $('board'); b.innerHTML = html; b.style.width = ''; /* one board size & place everywhere (CSS) */ b.hidden = false; b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
   $('dim').hidden = false; S.boardOpen = true;
 }
-function closeBoard() { $('board').hidden = true; $('dim').hidden = true; S.boardOpen = false; $('train').style.zIndex = ''; }
+function closeBoard() { hideHint(); $('board').hidden = true; $('dim').hidden = true; S.boardOpen = false; $('train').style.zIndex = ''; }
 const tip = (t, bad) => { const p = $('ptip'); if (p) { p.textContent = t; p.classList.toggle('bad', !!bad); } };
 
 /* ---------- 1–3: mark (pick number) + trace ---------- */
 function openCut(g) {
-  stopIdle(); const Lv = L(); S.first = g; S.n = null; S.trTries = 0;
+  stopIdle(); const Lv = L(); S.first = g; S.n = null; S.trTries = 0; S.pickOk = false;
   wallEl(g).classList.remove('glow');
   const speaker = tut() ? 'Chiku' : Lv.markBy;
   const line = tut() ? 'There are 2 of us. How many pieces should each stone be cut into?'
     : S.li === 1 ? 'How many pieces should each stone be cut into? Then trace the lines.'
-      : `How many pieces for ${M()} miners? Then trace${S.li === 2 ? ' the lines' : ''}.`;
+      : `How many pieces for ${M()} miners? Then trace the lines.`;
   showBoard(`<h3>Mark the stone with chalk</h3>
     <div class="row"><div class="cutwrap"><svg id="big" viewBox="${VB}"></svg></div>
-    <div class="col" style="width:620px"><p class="ptip" style="color:#5A2E0E">How many pieces?</p>
+    <div class="col" style="width:620px"><p class="ptip" id="hintSlot" style="color:#5A2E0E">How many pieces?</p>
       <div class="keys" id="keys">${CUTS[Lv.shape].map(k => `<button class="key${S.hint && k == M() ? ' pulse' : ''}" data-k="${k}">${k}</button>`).join('')}</div>
+      <div class="faceRow" id="faceRow">${Lv.crew.map((w, i) => `<div class="face" data-i="${i}">${miniFace(w)}<b></b><span>${w}</span></div>`).join('')}</div>
       <p class="ptip" id="ptip">Pick a number first.</p></div></div>`, 1180);
-  if (S.hint) { $('train').style.zIndex = 55; }
+  $('board').querySelector('.cutwrap').insertAdjacentHTML('beforeend', '<div id="faceMap"></div>');
+  if (S.hint && !$('faceRow')) { $('train').style.zIndex = 62; }
   $('keys').querySelectorAll('.key').forEach(b => b.onclick = () => pickN(+b.dataset.k, b));
   say(speaker, line);
   drawBig(); bindTrace();
-  idle(tut() ? { who: 'Chiku', text: 'Tap a number.', target: () => keyEl(M()) } : { who: speaker, text: 'Pick a number, then trace.', target: () => $('keys') });
+  idle(tut() ? { who: 'Chiku', text: 'Tap a number.', target: () => keyEl(M()) } : { who: speaker, text: 'Pick a number, then trace the lines.', target: () => $('keys') });
 }
 const keyEl = k => $('keys') && $('keys').querySelector(`[data-k="${k}"]`);
 async function pickN(k, btn) {
   if (S.busy) return; SFX.tap();
   const rid = RUN;
-  if (tut() && k != M()) {
-    S.ktries++; SFX.bad(); btn.classList.add('bad'); wig(btn); setTimeout(() => btn.classList.remove('bad'), 1000);
-    if (S.ktries == 1) { tip('Oops! Try again.', true); say('Chiku', 'Oops! Try again.'); }
-    else {
-      tip('Count the miners. One piece for each miner.', true); say('Chiku', 'Count the miners. One piece for each miner.');
-      S.hint = true; $('train').style.zIndex = 55; setHintSeats(true); keyEl(M()).classList.add('pulse');
+  S.pickOk = k == M();
+  previewCut(k);   // the stone shows k parts with a miner's face on each part
+  if (k != M()) {
+    const m = M(), crew = L().crew, who = tut() ? 'Chiku' : L().markBy;
+    S.ktries++; $('keys').querySelectorAll('.key.bad').forEach(b => b.classList.remove('bad'));
+    btn.classList.add('bad'); setTimeout(() => btn.classList.remove('bad'), 1600); tip('');
+    const msg = k < m ? `${list(crew.slice(k))} would get nothing!` : `${k - m == 1 ? 'One piece' : NUMW[k - m] + ' pieces'} would be left over!`;
+    oops(btn, k < m ? 'Oops! Someone gets nothing!' : 'Oops! Pieces left over!');
+    S.busy = true;
+    await say(who, `Oops! Try again. ${msg}`); if (rid !== RUN) return;
+    if (S.ktries >= 2) {
+      hintCard('Count the miners. One piece for each miner.'); await say(who, 'Count the miners. One piece for each miner.'); if (rid !== RUN) return;
+      S.hint = true; setHintSeats(true); keyEl(m).classList.add('pulse');
     }
-    idle({ who: 'Chiku', text: 'Tap a number.', target: () => keyEl(M()) });
+    // 3 wrong tries: the 4th attempt is locked to the right answer (no endless loop)
+    if (S.ktries >= 3) {
+      $('keys').querySelectorAll('.key').forEach(b => { if (+b.dataset.k != m) { b.disabled = true; b.classList.add('locked'); } });
+      keyEl(m).classList.add('pulse');
+      await say(who, `There are ${m} miners, so we cut the stone into ${m} pieces.`); if (rid !== RUN) return;
+      S.busy = false; return pickN(m, keyEl(m));
+    }
+    S.busy = false;
+    idle({ who, text: 'Tap a number.', target: () => keyEl(m) });
     return;
   }
-  S.n = k; S.lines = cutLines(L().shape, k); S.traced = S.lines.map(() => 0); S.active = null; S.dir = {};
+  if (k == M()) hideHint();
+  S.n = k; S.lines = cutLines(L().shape, k); S.traced = S.lines.map(() => 0); S.active = null; S.dir = {}; S.strokes = [];
   $('keys').querySelectorAll('.key').forEach(b => { b.classList.toggle('on', +b.dataset.k == k); b.classList.remove('pulse'); });
   drawBig();
-  const traceCfg = { who: tut() ? 'Bobo' : L().markBy, text: tut() ? 'Trace the line.' : 'Pick a number, then trace.', trace: nextLinePts };
+  const traceCfg = { who: tut() ? 'Bobo' : L().markBy, text: tut() ? 'Trace the dotted line across the stone.' : 'Pick a number, then trace the lines.', trace: nextLinePts };
   stopIdle();
+  S.hint = false; setHintSeats(false); $('train').style.zIndex = ''; hideHint();
+  SFX.good(); tip('Yes! One piece for each of us.');
+  S.busy = true; await say(tut() ? 'Chiku' : L().markBy, `Yes! ${M()} pieces, one for each of us.`); S.busy = false; if (rid !== RUN || S.phase !== 'cut') return;
+  clearFaces();
   if (tut()) {
-    S.hint = false; setHintSeats(false); $('train').style.zIndex = '';
-    SFX.good(); tip('Yes! One piece for each of us.');
-    await say('Chiku', 'Yes! One piece for each of us.'); if (rid !== RUN || S.phase !== 'cut') return;
-    if (!S.traced.some(t => t > 0)) { tip('Trace the dotted line with your finger.'); say('Bobo', 'Trace the dotted line with your finger.'); }
+    if (!S.traced.some(t => t > 0)) { tip('Trace the dotted line across the stone with your finger.'); say('Bobo', 'Trace the dotted line across the stone with your finger.'); }
     idle(Object.assign({ now: true }, traceCfg));
   } else {
-    tip(`Trace ${S.lines.length == 1 ? 'the dotted line' : 'each dotted line'} with your finger.`);
+    tip(S.lines.length == 1 ? 'Trace the dotted line across the stone.' : `Trace the ${S.lines.length} dotted lines across the stone.`);
     idle(traceCfg);
   }
 }
+/* small round miner face for the cut board */
+function miniFace(w) { return `<div class="mf"><div class="av">${avatarHTML(w)}</div></div>`; }
+/* preview: split the big stone into k parts and put a miner's face on each part */
+function previewCut(k) {
+  const Lv = L(), m = M(), pcs = pieces(Lv.shape, k), map = $('faceMap'); if (!map) return;
+  S.n = k; S.lines = cutLines(Lv.shape, k); S.traced = S.lines.map(() => 0); S.strokes = [];
+  const svg = $('big');
+  let h = stoneBase(Lv);
+  pcs.forEach((pc, i) => h += `<polygon points="${P(pc)}" fill="${i < m ? 'rgba(120,230,140,.28)' : 'rgba(255,70,50,.38)'}" stroke="none"/>`);
+  S.lines.forEach(([a, b]) => h += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#fff" stroke-width="2.4" stroke-dasharray="3 3" stroke-linecap="round"/>`);
+  svg.innerHTML = h;
+  const sz = $('board').querySelector('.cutwrap').getBoundingClientRect().width / SCALE;
+  const ctr = pc => { let A = 0, X = 0, Y = 0; for (let j = 0; j < pc.length; j++) { const [x0, y0] = pc[j], [x1, y1] = pc[(j + 1) % pc.length], f = x0 * y1 - x1 * y0; A += f; X += (x0 + x1) * f; Y += (y0 + y1) * f; } return A ? [X / (3 * A), Y / (3 * A)] : cent(pc); };
+  map.innerHTML = pcs.map((pc, i) => { const c = ctr(pc), x = (c[0] + 6) / 112 * sz, y = (c[1] + 6) / 112 * sz;
+    return i < m ? `<div class="pf" style="left:${x}px;top:${y}px;animation-delay:${i * .12}s">${miniFace(Lv.crew[i])}</div>`
+                 : `<div class="pf extra" style="left:${x}px;top:${y}px;animation-delay:${i * .12}s">?</div>`; }).join('');
+  document.querySelectorAll('#faceRow .face').forEach((f, i) => { f.classList.toggle('got', i < k); f.classList.toggle('none', i >= k); });
+  SFX.chalk();
+}
+function clearFaces() { const m = $('faceMap'); if (m) m.innerHTML = ''; document.querySelectorAll('#faceRow .face').forEach(f => f.classList.remove('got', 'none')); }
 function svgToStage(svg, x, y) {
   const pt = svg.createSVGPoint(); pt.x = x; pt.y = y; const p = pt.matrixTransform(svg.getScreenCTM());
   const s = stage.getBoundingClientRect(); return { x: (p.x - s.left) / SCALE, y: (p.y - s.top) / SCALE };
@@ -599,24 +713,16 @@ function nextLinePts() {
   const i = S.traced.findIndex(t => t < 1); if (i < 0) return null;
   const [a, b] = S.lines[i]; return [svgToStage(svg, a[0], a[1]), svgToStage(svg, b[0], b[1])];
 }
-function drawBig(redLine) {
+function drawBig(live) {
   const svg = $('big'); if (!svg) return;
   let h = stoneBase(L());
   if (S.n) {
-    S.lines.forEach((ln, i) => {
-      const [a, b] = ln, t = S.traced[i];
-      if (t < 1) h += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="rgba(40,25,15,.55)" stroke-width="3.6" stroke-dasharray="3.2 3.2" stroke-linecap="round"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#fff" stroke-width="2.2" stroke-dasharray="3.2 3.2" stroke-linecap="round"/>`;
-      if (t > 0) {
-        const from = S.dir[i] ? b : a, to = S.dir[i] ? a : b, e = [from[0] + (to[0] - from[0]) * Math.min(1, t), from[1] + (to[1] - from[1]) * Math.min(1, t)];
-        h += `<line x1="${from[0]}" y1="${from[1]}" x2="${e[0].toFixed(1)}" y2="${e[1].toFixed(1)}" stroke="#fff" stroke-width="4.2" stroke-linecap="round" filter="drop-shadow(0 0 1.5px #fff)"/>`;
-      }
+    const chalk = ps => `<polyline points="${ps.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" filter="drop-shadow(0 0 1.5px #fff)"/>`;
+    S.lines.forEach(([a, b], i) => {
+      if (S.traced[i] < 1) h += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#FFF6D6" stroke-opacity=".95" stroke-width="2.6" stroke-dasharray="3.5 3.5" stroke-linecap="round"/><circle cx="${a[0]}" cy="${a[1]}" r="2.6" fill="#FFE08A"/><circle cx="${b[0]}" cy="${b[1]}" r="2.6" fill="#FFE08A"/>`;
+      else if (S.strokes && S.strokes[i]) h += chalk(S.strokes[i]);
     });
-    if (redLine) { const [a, e] = redLine; h += `<line x1="${a[0]}" y1="${a[1]}" x2="${e[0]}" y2="${e[1]}" stroke="#FF3B2F" stroke-width="4.6" stroke-linecap="round"/>`; }
-    const nx = S.traced.findIndex(t => t < 1);
-    if (nx >= 0 && S.active == null && !redLine) {
-      const p = S.lines[nx][0];
-      h += `<circle class="sdot" cx="${p[0]}" cy="${p[1]}" r="5" fill="#FFD25A" stroke="#fff" stroke-width="1.4"><animate attributeName="r" values="4;7.5;4" dur="1s" repeatCount="indefinite"/></circle>`;
-    }
+    if (live && live.length > 1) h += chalk(live);
   }
   svg.innerHTML = h;
 }
@@ -624,49 +730,65 @@ function traceWrong(i, from, e) {
   S.trTries++; SFX.bad();
   drawBig([from, e]); setTimeout(() => { if (S.boardOpen) drawBig(); }, 450);
   const who = tut() ? 'Bobo' : L().markBy;
-  if (S.trTries === 1) { tip('Oops! Try again.', true); say(who, 'Oops! Try again.'); idle({ who, text: tut() ? 'Trace the line.' : 'Pick a number, then trace.', trace: nextLinePts }); }
+  if (S.trTries === 1) { tip(''); oops($('big')); say(who, 'Oops! Try again.'); idle({ who, text: tut() ? 'Trace the dotted line across the stone.' : 'Pick a number, then trace the lines.', trace: nextLinePts }); }
   else {
     const h = tut() ? 'Start at the glowing dot and follow the dots to the other end.' : 'Start at the glowing dot and follow the dots.';
-    tip(h, true); say(who, h);
-    idle({ who, text: tut() ? 'Trace the line.' : 'Pick a number, then trace.', trace: nextLinePts, now: true, slow: true });
+    tip(''); oops($('big')); hintCard(h); say(who, h);
+    idle({ who, text: tut() ? 'Trace the dotted line across the stone.' : 'Pick a number, then trace the lines.', trace: nextLinePts, now: true, slow: true });
   }
 }
+/* Free drawing: the child draws any line across the stone (no need to follow the dots).
+   Each long-enough stroke counts as one cut; the stone cutter then makes the equal cuts. */
 function bindTrace() {
   const svg = $('big');
   const toS = e => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
-  let lastChalk = 0;
+  let lastChalk = 0, pts = null;
   svg.onpointerdown = e => {
-    if (!S.n || S.busy) return; const p = toS(e);
-    for (let i = 0; i < S.lines.length; i++) {
-      if (S.traced[i] >= 1) continue; const [a, b] = S.lines[i];
-      if (Math.hypot(p.x - a[0], p.y - a[1]) < 13) { S.active = i; S.dir[i] = 0; break; }
-      if (Math.hypot(p.x - b[0], p.y - b[1]) < 13) { S.active = i; S.dir[i] = 1; break; }
-    }
-    if (S.active != null) { svg.setPointerCapture(e.pointerId); S.traced[S.active] = .001; stopIdle(); tip(''); }
-    else tip('Start from the glowing dot.', false);
+    if (!S.n || !S.pickOk || S.busy || S.traced.every(t => t >= 1)) return;
+    svg.setPointerCapture(e.pointerId); stopIdle(); tip('');
+    const p = toS(e); pts = [[p.x, p.y]]; S.active = 0; drawBig(pts);
   };
   svg.onpointermove = e => {
-    if (S.active == null) return; const i = S.active, p = toS(e); let [a, b] = S.lines[i]; if (S.dir[i]) [a, b] = [b, a];
-    const vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy, t = ((p.x - a[0]) * vx + (p.y - a[1]) * vy) / L2,
-      dist = Math.abs((p.x - a[0]) * vy - (p.y - a[1]) * vx) / Math.sqrt(L2);
-    if (dist > 11 || t < -.15) {
-      const tt = S.traced[i], e2 = [a[0] + vx * tt, a[1] + vy * tt];
-      S.traced[i] = 0; S.active = null; traceWrong(i, a, e2); return;
-    }
-    if (t > S.traced[i] && t < S.traced[i] + .4) {
-      S.traced[i] = Math.min(1, t); drawBig();
-      const now = performance.now(); if (now - lastChalk > 70) { SFX.chalk(); lastChalk = now; }
-    }
+    if (!pts) return; const p = toS(e), q = pts[pts.length - 1];
+    if (Math.hypot(p.x - q[0], p.y - q[1]) < 1.5) return;
+    pts.push([p.x, p.y]); drawBig(pts);
+    const now = performance.now(); if (now - lastChalk > 70) { SFX.chalk(); lastChalk = now; }
   };
   svg.onpointerup = svg.onpointercancel = () => {
-    if (S.active == null) return; const i = S.active; S.active = null;
-    if (S.traced[i] > .9) { S.traced[i] = 1; drawBig(); afterLine(); }
-    else { S.traced[i] = 0; tip('Trace all the way to the other end.'); drawBig(); idle({ who: tut() ? 'Bobo' : L().markBy, text: 'Trace the line.', trace: nextLinePts }); }
+    if (!pts) return; const stroke = pts; pts = null; S.active = null;
+    let len = 0; for (let k = 1; k < stroke.length; k++) len += Math.hypot(stroke[k][0] - stroke[k - 1][0], stroke[k][1] - stroke[k - 1][1]);
+    // the stroke must follow one of the dotted lines (close to it along most of its length)
+    const match = i => {
+      const [A, B] = S.lines[i], dx = B[0] - A[0], dy = B[1] - A[1], L2 = dx * dx + dy * dy, LL = Math.sqrt(L2), TOL = 9;
+      let near = 0, lo = 1, hi = 0;
+      stroke.forEach(([x, y]) => {
+        const t = Math.max(0, Math.min(1, ((x - A[0]) * dx + (y - A[1]) * dy) / L2)), d = Math.hypot(x - A[0] - t * dx, y - A[1] - t * dy);
+        if (d <= TOL) { near++; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+      });
+      return { ok: near / stroke.length >= .75 && (hi - lo) >= .7 && len >= LL * .55, score: near / stroke.length + (hi - lo) };
+    };
+    let best = -1, bs = 0;
+    S.traced.forEach((t, i) => { if (t >= 1) return; const m = match(i); if (m.ok && m.score > bs) { bs = m.score; best = i; } });
+    const who = tut() ? 'Bobo' : L().markBy;
+    if (best < 0) {
+      S.trTries = (S.trTries || 0) + 1; drawBig();
+      if (S.trTries >= 3) {   // loop ends: the line is traced for the child
+        const i = S.traced.findIndex(t => t < 1); S.traced[i] = 1; (S.strokes = S.strokes || [])[i] = S.lines[i].slice();
+        say(who, 'Like this, along the dotted line.'); S.trTries = 0; drawBig(); afterLine(); return;
+      }
+      oops(svg, 'Trace the dotted line!');
+      say(who, S.trTries === 1 ? 'Oops! Trace along the dotted line.' : 'Follow the dotted line with your finger, from one end to the other.');
+      idle({ who, text: 'Trace the dotted line.', trace: nextLinePts, now: S.trTries >= 2 });
+      return;
+    }
+    if (S.trTries) say(who, 'Yes! That’s the line.');
+    S.trTries = 0; S.traced[best] = 1; (S.strokes = S.strokes || [])[best] = S.lines[best].slice();   // snap to the clean line
+    drawBig(); afterLine();
   };
 }
 async function afterLine() {
-  SFX.pop();
-  if (S.traced.some(t => t < 1)) { tip('Nice line! Now the next one.'); idle({ who: tut() ? 'Bobo' : L().markBy, text: 'Trace the next line.', trace: nextLinePts }); return; }
+  SFX.pop(); hideHint();
+  if (S.traced.some(t => t < 1)) { const left = S.traced.filter(t => t < 1).length; tip(`Nice line! ${left} more to go.`); idle({ who: tut() ? 'Bobo' : L().markBy, text: 'Trace the next line.', trace: nextLinePts }); return; }
   const rid = RUN; S.busy = true; stopIdle(); tip('Here comes the stone cutter…');
   await cutAnim($('big'), S.lines, 700);
   if (rid !== RUN) return;
@@ -703,7 +825,7 @@ async function cutRest(rid) {
   const Lv = L(), lines = cutLines(Lv.shape, S.n), rest = [];
   for (let g = 0; g < Lv.count; g++) if (!S.cutDone[g]) rest.push(g);
   if (tut()) say('Chiku', 'My stone cutter will cut the rest the same way!');
-  else fb(`The cutter cuts the other ${rest.length} stones the same way!`, '', 2600);
+  else say('Chiku', `My stone cutter will cut the other ${rest.length} stones the same way!`);
   await sleep(500);
   await Promise.all(rest.map((g, j) => sleep(j * 220).then(() => {
     if (rid !== RUN) return; const svg = wallEl(g).querySelector('svg');
@@ -764,8 +886,8 @@ function hideBigHammer() {
 }
 /* Hammer poses (overhead swing). Drop the original pictures into assets/images/characters/ as
    <name>_hammer.png and they are used automatically. hx/hy = where the hammer head is in the picture. */
-const HPOSE = { Bobo: { hx: .77, hy: .13 }, Mitthu: { hx: .78, hy: .11 }, Golu: { hx: .84, hy: .13 }, Chiku: { hx: .89, hy: .12 }, Tinku: { hx: .8, hy: .13 } };
-for (const w in HPOSE) { const im = new Image(); im.onload = () => { HPOSE[w].ok = true; HPOSE[w].ar = im.naturalWidth / im.naturalHeight; }; im.src = IMG + 'characters/' + w.toLowerCase() + '_hammer.png'; HPOSE[w].src = im.src; }
+const HPOSE = { Bobo: { hx: .77, hy: .13 }, Mitthu: { hx: .78, hy: .11 }, Golu: { hx: .84, hy: .13 }, Chiku: { hx: .89, hy: .12 } };   // Tinku has no _hammer.png yet: add it here once the art exists
+for (const w in {}) { const im = new Image(); im.onload = () => { HPOSE[w].ok = true; HPOSE[w].ar = im.naturalWidth / im.naturalHeight; }; im.src = IMG + 'characters/' + w.toLowerCase() + '_hammer.png'; HPOSE[w].src = im.src; }
 let poseEl = null, poseT = null;
 /* The poses face left with the hammer raised behind. dir = -1: as drawn (stone on the left);
    dir = +1: mirrored (stone on the right). The body rotates about the feet so the hammer comes over the head
@@ -863,7 +985,7 @@ let handEl = null, handT = null;
 function handHammer(target, ms) {
   ms = Math.max(ms, 760);
   return new Promise(done => {
-    const r = rel(target), sc = Math.max(.95, Math.min(1.35, r.w / 190)), W = 200 * sc, H = 300 * sc, L = 240 * sc;
+    const r = rel(target), sc = Math.max(.55, Math.min(.78, r.w / 300)), W = 200 * sc, H = 300 * sc, L = 240 * sc;
     const right = r.cx < 1500;                  // swing in from the right, or from the left near the edge
     const dir = right ? 1 : -1, HIT = -26 * dir, a = HIT * Math.PI / 180;
     const hx = r.cx, hy = r.cy;                 // hammer head lands on the stone centre
@@ -921,7 +1043,7 @@ async function hammerStone(g) {
   if (!left) return allOpen();
   if (S.rev[g] == 1 && tut() && !S.saidHit) { S.saidHit = true; say(Lv.ham, 'One part is off! Tap again for the next part.'); }
   const parts = S.n - S.rev[g];
-  fb(!S.split[g] ? `${parts} part${parts > 1 ? 's' : ''} left on this stone.` : `Great! Now the next stone.`, '', 2200);
+  if (!(S.rev[g] == 1 && tut())) say(Lv.ham, !S.split[g] ? `${parts} part${parts > 1 ? 's' : ''} left on this stone.` : `Great! Now the next stone.`);
   idle({ who: Lv.ham, text: tut() ? 'Tap the stone to hammer it.' : 'Tap a stone.', target: () => S.split[g] ? firstGem(x => !S.split[x]) : b, now: tut() });
 }
 async function breakRest(rid) {
@@ -942,7 +1064,7 @@ async function breakRest(rid) {
 function allOpen() {
   hideBigHammer(); hidePoseHammer(); hideHandHammer();
   const Lv = L(); S.phase = 'deal'; fb(null);
-  say('Chiku', tut() ? `Tap a ruby to share its pieces into our buckets.` : `Tap ${an(Lv.gem)} to share its pieces.`);
+  say('Chiku', tut() ? `Tap a ruby to share its pieces into our trays.` : `Tap ${an(Lv.gem)} to share its pieces.`);
   idle({ who: 'Chiku', text: tut() ? 'Tap a ruby to share it.' : `Tap ${an(Lv.gem)}.`, target: () => firstGem(x => !S.dealt[x]), now: tut() });
 }
 function deal(g) {
@@ -965,13 +1087,13 @@ async function landed() {
   if (n < m) return fail('few'); if (n > m) return fail('many');
   S.busy = false; const k = S.buckets[0];
   if (S.dealt.every(x => x)) {
-    S.phase = 'done'; SFX.good(); confetti(24);
-    fb(`Fair and square! <b>${k}/${n}</b> each.`, 'good');
-    await say('Chiku', `Fair and square! ${k}/${n} each.`); if (rid !== RUN) return;
+    S.phase = 'done'; hideHint(); SFX.good(); confetti(24);
+    fb('Fair and square! Everyone got the same.', 'good');
+    await say('Chiku', 'Fair and square! Everyone got the same.'); if (rid !== RUN) return;
     await sleep(500); if (rid !== RUN) return; fb(null); openName(); return;
   }
   if (k == 1 && tut()) say('Chiku', `Each piece is 1/${n} of a ruby.`);
-  fb(`Every bucket has <b>${k}/${n}</b>.`, '', 2200);
+  fb(`Every tray has <b>${k} ${k === 1 ? 'piece' : 'pieces'}</b>.`, '', 2200);
   idle({ who: 'Chiku', text: tut() ? 'Tap a ruby to share it.' : `Tap ${an(Lv.gem)}.`, target: () => firstGem(x => !S.dealt[x]) });
 }
 async function fail(type) {
@@ -979,14 +1101,16 @@ async function fail(type) {
   let msg;
   if (type == 'few') {
     const left = Lv.crew.slice(n, m); msg = `Oops! Try again. ${list(left)} got nothing!`;
-    for (let k = n; k < m; k++) wig($('seat' + k));
+    for (let k = n; k < m; k++) { const st = $('seat' + k); st.classList.add('emptybad'); wig(st); setTimeout(() => st.classList.remove('emptybad'), 2400); }
   } else {
     const ex = n - m; msg = `Oops! Try again. ${ex == 1 ? 'One piece is' : NUMW[ex] + ' pieces are'} left over!`;
     wig(wallEl(S.last));
   }
-  fb(msg, 'bad'); await say('Chiku', msg); if (rid !== RUN) return;
+  fb(null); oops(type == 'few' ? $('seat' + n) : wallEl(S.last), type == 'few' ? 'Oops! Someone got nothing!' : 'Oops! Pieces left over!');
+  await say('Chiku', msg); if (rid !== RUN) return;
   if (S.tries >= 2) {
     S.hint = true; setHintSeats(true);
+    hintCard('Count the miners. Cut each stone into one piece for each miner.');
     await say('Chiku', 'Count the miners. Cut each stone into one piece for each miner.'); if (rid !== RUN) return;
   }
   S.busy = false; $('btnAgain').hidden = false; idle({ target: () => $('btnAgain'), now: S.tries >= 2 });
@@ -996,7 +1120,7 @@ $('btnAgain').onclick = () => {
   S.n = null; S.buckets = Array(M()).fill(0); ['dealt', 'split', 'cutDone'].forEach(k => S[k] = S[k].map(() => false)); S.rev = S.rev.map(() => 0);
   S.phase = 'cut'; S.busy = false; S.saidHit = false; fb(null);
   renderTrain(null); renderWall();
-  say('Bobo', S.hint ? 'Look at the numbers on our buckets. Tap a stone to mark it again.' : 'Let’s try again. Tap a stone to mark it with chalk.');
+  say('Bobo', S.hint ? 'Look at the numbers on our trays. Tap a stone to mark it again.' : 'Let’s try again. Tap a stone to mark it with chalk.');
   idle({ who: 'Bobo', text: 'Tap a stone.', target: () => wallEl(0) });
 };
 
@@ -1004,20 +1128,34 @@ $('btnAgain').onclick = () => {
 function openName() {
   const Lv = L(), who = Lv.name, k = Lv.crew.indexOf(who), pcs = pieces(Lv.shape, S.n);
   S.whoK = k; S.phase = 'name'; S.box = 'top'; S.val = { top: '', bot: '' }; S.nameTries = 0;
-  const tipped = Array.from({ length: S.buckets[k] }, (_, j) => `<span class="pc">${pieceMini(Lv, pcs[j % S.n])}</span>`).join('');
+  const tipped = Array.from({ length: S.buckets[k] }, () => `<span class="pc">${pieceMini(Lv, pcs[0])}</span>`).join('');
   showBoard(`<h3>How much ${Lv.stuff} did ${who} get?</h3>
     <div class="row" id="nameRow" style="position:relative;align-items:center">
-      <div class="col" style="width:520px"><p class="ptip" style="color:#5A2E0E">${who}’s bucket, tipped out:</p>
-        <div class="tipped" id="tipped">${tipped}</div>
-        <div class="onegem" id="onegem" hidden>${svgWrap(gemSplit(Lv, S.n))}</div></div>
+      <div class="col shower" style="width:560px">
+        <div class="showWho">${charFull(who)}</div>
+        <div class="showTray"><div class="tipped" id="tipped" style="--cols:${Math.ceil(S.buckets[k] / Math.ceil(S.buckets[k] / 6))}">${tipped}</div></div>
+</div>
+      <div class="wordFr" id="wordFr" hidden><div class="wfRow"><b class="bulb">💡</b><div class="wf"><span id="wfTop">Total number of pieces</span><i></i><span id="wfBot">Number of pieces that make one whole</span></div></div>
+        <div class="onegem" id="onegem" hidden>${svgWrap(gemSplit(Lv, S.n))}</div><div class="ogLab">1 ${Lv.gem} cut into ${S.n}</div></div>
       <div class="frac" id="frac"><button class="box sel" id="bxtop" aria-label="Top number"></button><div class="bar"></div><button class="box" id="bxbot" aria-label="Bottom number"></button></div>
       <div class="col"><div class="pad" id="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => `<button data-d="${d}">${d}</button>`).join('')}<button data-d="del" class="del" aria-label="Delete">⌫</button><button data-d="0">0</button><button data-d="clr" class="del" aria-label="Clear">C</button><button data-d="ok" class="ok">Check</button></div></div>
       <svg class="arrows" id="arrows"></svg>
     </div><p class="ptip" id="ptip" style="max-width:none;margin-top:8px"></p>`, 1560);
   $('bxtop').onclick = () => { SFX.tap(); selBox('top'); }; $('bxbot').onclick = () => { SFX.tap(); selBox('bot'); };
   $('pad').querySelectorAll('button').forEach(b => b.onclick = () => padPress(b.dataset.d));
-  say(Lv.ask, tut() ? 'How much ruby did Bobo get? Write it as a fraction.' : `How much ${Lv.stuff} did ${who} get?`);
-  idle({ who: Lv.ask, text: 'Fill in the boxes.', target: () => $('bxtop') });
+  // the miner holds up their tray and shows it, then the question is asked
+  const tray = document.querySelector('.showTray'), whoEl = document.querySelector('.showWho');
+  tray.animate([{ transform: 'translateY(120px) scale(.6)', opacity: 0 }, { transform: 'translateY(-14px) scale(1.05)', offset: .7 }, { transform: 'none', opacity: 1 }], { duration: 750, easing: 'ease-out', fill: 'both' });
+  whoEl.animate([{ transform: 'translateY(40px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 500, fill: 'both' });
+  [...tray.querySelectorAll('.pc')].forEach((p, j) => p.animate([{ transform: 'scale(0)' }, { transform: 'scale(1.2)', offset: .7 }, { transform: 'none' }], { duration: 380, delay: 600 + j * 110, fill: 'both' }));
+  setTimeout(SFX.sparkle, 700);
+  const rid = RUN; S.busy = true;
+  (async () => {
+    await say(who, 'Look, these are my gems!'); if (rid !== RUN) return;
+    S.busy = false;
+    say(Lv.ask, tut() ? 'How much ruby did Bobo get? Write it as a fraction.' : `How much ${Lv.stuff} did ${who} get? Write it as a fraction.`);
+    idle({ who: Lv.ask, text: 'Fill in the boxes.', target: () => $('bxtop') });
+  })();
 }
 function selBox(k) { S.box = k; $('bxtop').classList.toggle('sel', k == 'top'); $('bxbot').classList.toggle('sel', k == 'bot'); }
 function padPress(d) {
@@ -1033,7 +1171,7 @@ async function checkName() {
   const Lv = L(), top = S.val.top, bot = S.val.bot, c = String(S.buckets[S.whoK]), m = String(S.n), who = Lv.name, rid = RUN;
   if (!top || !bot) { tip('Fill in both boxes first.'); return; }
   if (top == c && bot == m) {
-    stopIdle(); S.busy = true; SFX.good(); confetti(30);
+    stopIdle(); hideHint(); S.busy = true; SFX.good(); confetti(30);
     $('frac').style.borderColor = '#3FAF5A'; $('frac').style.background = 'rgba(200,255,200,.6)';
     const msg = tut() ? `Yes! ${c}/${m}. The top number is bigger, so it’s an improper fraction!`
       : S.li == LEVELS.length - 1 ? `${c}/${m}! You formed improper fractions in every chamber!` : `${c}/${m}! An improper fraction.`;
@@ -1041,24 +1179,28 @@ async function checkName() {
     await sleep(600); if (rid !== RUN) return;
     S.busy = false; rideOn(rid); return;
   }
-  S.nameTries++; SFX.bad();
-  const fr = $('frac'); fr.classList.add('bad'); wig(fr);
+  S.nameTries++;
+  const fr = $('frac'); fr.classList.add('bad');
   setTimeout(() => { fr.classList.remove('bad'); S.val = { top: '', bot: '' }; if ($('bxtop')) { $('bxtop').textContent = ''; $('bxbot').textContent = ''; selBox('top'); } }, 900);
-  const hintLine = tut() ? `Bottom: how many pieces each ruby was cut into. Top: how many pieces in Bobo’s bucket.`
-    : `Bottom: pieces each ${Lv.gem} was cut into. Top: pieces in ${who}’s bucket.`;
-  if (top == m && bot == c) { tip('Careful, the top and bottom are swapped!', true); await say(Lv.ask, 'Careful, the top and bottom are swapped!'); if (rid !== RUN) return; }
-  else if (S.nameTries == 1) { tip('Oops! Try again.', true); say(Lv.ask, 'Oops! Try again.'); return; }
-  if (S.nameTries >= 2) { tip(hintLine, true); say(Lv.ask, hintLine); showArrows(rid); }
+  const hintLine = tut() ? `Bottom: how many pieces each ruby was cut into. Top: how many pieces on Bobo’s tray.`
+    : `Bottom: pieces each ${Lv.gem} was cut into. Top: pieces on ${who}’s tray.`;
+  tip('');
+  if (top == m && bot == c) { oops($('frac'), 'Top and bottom are swapped!'); await say(Lv.ask, 'Careful, the top and bottom are swapped!'); if (rid !== RUN) return; }
+  else if (S.nameTries == 1) { oops($('frac')); say(Lv.ask, 'Oops! Try again.'); return; }
+  else oops($('frac'));
+  if (S.nameTries >= 2) { say(Lv.ask, 'Top: the total number of pieces. Bottom: the number of pieces that make one whole.'); showArrows(rid); }
 }
 async function showArrows(rid) {
   S.busy = true; stopIdle();
   const og = $('onegem'); og.hidden = false; og.classList.add('pop');
+  const wf = $('wordFr'); if (wf && wf.hidden) { wf.hidden = false; wf.classList.add('pop'); SFX.sparkle(); }
   await sleep(450); if (rid !== RUN || !$('arrows')) return;
   const svg = $('arrows'), base = rel(svg), pt = (el, fx, fy) => { const r = rel(el); return [r.x - base.x + r.w * fx, r.y - base.y + r.h * fy]; };
   const bot = pt($('bxbot'), 0, .5), gem = pt(og, 1, .5), gemB = pt(og, .5, 1), topB = pt($('bxtop'), 0, .5), tp = pt($('tipped'), 1, .5);
   const arrow = (a, b, col) => `<path d="M${a[0]} ${a[1]} C${a[0] - 80} ${a[1]}, ${b[0] + 80} ${b[1]}, ${b[0] + 10} ${b[1]}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round" stroke-dasharray="14 10"><animate attributeName="stroke-dashoffset" from="48" to="0" dur=".8s" repeatCount="indefinite"/></path><circle cx="${b[0] + 10}" cy="${b[1]}" r="10" fill="${col}"/>`;
-  svg.innerHTML = arrow(bot, gem, '#2F63DB') + arrow(topB, tp, '#E07A26') +
-    `<text x="${gemB[0]}" y="${gemB[1] + 34}" text-anchor="middle" font-size="30" font-weight="800" fill="#2F63DB">1 ${L().gem} cut into ${S.n}</text>`;
+  const wT = pt($('wfTop'), 0, .5), wB = pt($('wfBot'), .5, 1), gT = pt(og, .5, 0);
+  const up = `<path d="M${gT[0]} ${gT[1] + 4} L${wB[0]} ${wB[1] + 10}" fill="none" stroke="#2F63DB" stroke-width="7" stroke-linecap="round" stroke-dasharray="14 10"><animate attributeName="stroke-dashoffset" from="48" to="0" dur=".8s" repeatCount="indefinite"/></path>`;
+  svg.innerHTML = up + arrow(wT, tp, '#E07A26');
   await sleep(2600); if (rid !== RUN) return;
   const pcs = [...$('tipped').querySelectorAll('.pc')];
   for (let i = 0; i < pcs.length; i++) {
@@ -1087,7 +1229,9 @@ async function rideOn(rid) {
   await sleep(1300); if (rid !== RUN) return;
   S.buckets = S.buckets.map(() => 0); for (let k = 0; k < M(); k++) fillPile(k);
   const last = S.li == LEVELS.length - 1;
-  if (last) { await say('Chiku', 'Our sacks are full, and every share was equal!'); if (rid !== RUN) return; return finale(); }
+  if (last) { await say('Chiku', 'Our sacks are full, and every share was equal!'); if (rid !== RUN) return;
+    // no summary board: straight into the Level 2 story, which then starts Level 2
+    await sleep(600); if (rid !== RUN) return; stopIdle(); closeBoard(); return window.L2 ? window.L2.start() : finale(); }
   await say('Bobo', 'On to the next chamber!'); if (rid !== RUN) return;
   fb(null);
   const next = LEVELS[S.li + 1], leavers = Lv.crew.filter(n => !next.crew.includes(n));
@@ -1097,9 +1241,12 @@ async function rideOn(rid) {
   }
   const tr = $('train'); tr.classList.add('bump'); SFX.rumble(2.2); tr.classList.add('rollout');
   await sleep(1900); if (rid !== RUN) return;
-  await tunnelRide(`${next.title} · ${next.plural}`, Lv.crew.filter(n => !leavers.includes(n)));
-  if (rid !== RUN) return;
-  loadLevel(S.li + 1, { anim: true, rollin: true });
+  // the trolley rolls in once inside the tunnel and stops; the next chamber fades in around it (no second roll-in)
+  let arrived = 0;
+  await tunnelRide(`${next.title} · ${next.plural}`, Lv.crew.filter(n => !leavers.includes(n)),
+    () => { if (rid !== RUN) return; loadLevel(S.li + 1, { anim: true, silent: true }); arrived = RUN; });
+  if (!arrived || arrived !== RUN) return;
+  beginLevel(arrived, 200);
 }
 function finale() {
   stopIdle(); fb(null); SFX.good(); confetti(60); setTimeout(() => confetti(40), 900);
@@ -1143,20 +1290,11 @@ function trainHTML(crew) {
   }
   return h;
 }
-async function tunnelRide(caption, crew = ['Chiku', 'Bobo']) {
+async function tunnelRide(caption, crew = ['Chiku', 'Bobo'], onArrive) {
   const T = $('tunnel'); T.hidden = false;
   const cap = $('tunnelCap'); cap.textContent = caption; cap.style.opacity = 0; cap.style.animation = 'none';
   const anims = [], A = (el, kf, o) => { const x = el.animate(kf, o); anims.push(x); return x; };
-  // ---- 1) back view dive ----
-  const r = rideLayer('story_03c_cave_tunnel.jpg', [[59.5, 16, 190], [54.4, 35, 90], [54, 45, 60], [53.4, 51.5, 40]], T);
-  r.classList.add('bob', 'fast'); r.firstChild.style.transformOrigin = '54% 46%';
-  SFX.rumble(7); SFX.clack(6.6);
-  const dust = setInterval(() => { dustPuff(780, 960, 2, -.5, T); dustPuff(1170, 960, 2, .5, T); }, 220);
-  r.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, fill: 'forwards' });
-  r.firstChild.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.15)', offset: .6 }, { transform: 'scale(2.6)' }], { duration: 1700, fill: 'forwards', easing: 'cubic-bezier(.4,0,.9,.6)' });
-  await sleep(1150); SFX.whoosh();
-  await r.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 550, fill: 'forwards' }).finished.catch(() => {});
-  clearInterval(dust); r.remove();
+  SFX.rumble(5.5); SFX.clack(5.2);
   // ---- 2) side view journey ----
   const j = document.createElement('div'); j.className = 'journey';
   j.innerHTML = `<div class="jStrip"></div><div class="jGlow"></div><div class="jTrain">${trainHTML(crew)}</div><div class="jVig"></div><div class="jEnd"></div>`;
@@ -1174,11 +1312,12 @@ async function tunnelRide(caption, crew = ['Chiku', 'Bobo']) {
   const t0 = performance.now();
   await new Promise(res => { const st = n => { const k = Math.min(1, (n - t0) / 900); scroll.playbackRate = 1 - k * k * .999; k < 1 ? requestAnimationFrame(st) : res(); }; requestAnimationFrame(st); });
   scroll.pause(); clearInterval(dust2);
-  A(j.querySelector('.jEnd'), [{ opacity: 0 }, { opacity: 1 }], { duration: 900, fill: 'forwards' });
-  SFX.rumble(1.4);
-  await A(tr, [{ transform: 'translateX(0)' }, { transform: 'translateX(1600px)' }], { duration: 1400, easing: 'cubic-bezier(.5,0,.8,.5)', fill: 'forwards' }).finished.catch(() => {});
-  cap.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: 'forwards' });
-  await A(j, [{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: 'forwards' }).finished.catch(() => {});
+  // the trolley stays where it stopped; the next chamber fades in around it
+  tr.classList.remove('bumpy'); SFX.tap();
+  await sleep(500);
+  if (onArrive) onArrive();
+  cap.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, fill: 'forwards' });
+  await A(j, [{ opacity: 1 }, { opacity: 0 }], { duration: 700, fill: 'forwards' }).finished.catch(() => {});
   anims.forEach(x => x.cancel()); j.remove(); cap.getAnimations().forEach(x => x.cancel()); T.hidden = true;
 }
 /** Bobo's head-torch switches on, its beam sweeps to the stones, then the light opens up on the game */
@@ -1295,7 +1434,7 @@ function showStoneRings(list) {
   list.forEach(([cx, cy, w, h], i) => setTimeout(() => {
     const r = document.createElement('div'); r.className = 'stoneRing';
     Object.assign(r.style, { left: (cx - w / 2) + '%', top: (cy - h / 2) + '%', width: w + '%', height: h + '%' });
-    r.innerHTML = `<b>${i + 1}</b>`;
+    r.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none"><ellipse class="gl" cx="50" cy="50" rx="47" ry="47" pathLength="100"/><ellipse class="run" cx="50" cy="50" rx="47" ry="47" pathLength="100" style="animation-delay:${i * -.6}s"/></svg>`;
     $('storyRig').parentNode.appendChild(r);
     SFX.sparkle(); const b = r.getBoundingClientRect(), st = stage.getBoundingClientRect();
     particles((b.left - st.left + b.width / 2) / SCALE, (b.top - st.top) / SCALE + 10, 8, 'spark', 110);
@@ -1337,6 +1476,8 @@ async function runStory(from = 1) {
     if (myRun !== RUN) return;
     await sleep(900);
     if (myRun !== RUN) return;
+    // teaching part: what an improper fraction is, then picture questions
+    if (s.teach && window.teachImproper) { $('bubble').hidden = true; const ok = await window.teachImproper(myRun); if (!ok || myRun !== RUN) return; }
   }
   $('bubble').hidden = true; skip.hidden = true;
   loadLevel(0, { silent: true });
@@ -1349,7 +1490,7 @@ function skipStory() {
   $('game').hidden = false; loadLevel(0);
 }
 $('btnSkip').onclick = e => { e.stopPropagation(); SFX.tap(); skipStory(); };
-$('btnPlay').onclick = () => { ac(); SFX.tap(); runStory(); };
+$('btnPlay').onclick = () => { if ($('btnPlay').dataset.used) return; $('btnPlay').dataset.used = 1; ac(); SFX.tap(); runStory(); };   // one tap only: no double start
 
 /* ===================== HUD ===================== */
 LEVELS.forEach((l, i) => { const o = document.createElement('option'); o.value = i; o.textContent = `${l.title} · ${l.plural}`; $('jump').appendChild(o); });
@@ -1360,5 +1501,46 @@ $('btnMute').onclick = () => { muted = !muted; if (muted) hush(); $('btnMute').t
 buildDefs();
 setBg(STORY[0].bg); $('storyBg').classList.add('kenburns'); $('titleCard').hidden = false;
 // preload images
-['backgrounds/' + STORY.map(s => s.bg).join(',backgrounds/'), 'backgrounds/chamber_bg.jpg', 'backgrounds/story_00_mine_outside.jpg', 'backgrounds/story_07_bobo_pointing.jpg', 'backgrounds/cover.jpg', 'backgrounds/story_03b_cave_entrance.jpg', 'backgrounds/story_03c_cave_tunnel.jpg', 'backgrounds/game_bg.jpg', 'props/stone_round.png', 'props/bucket.png', 'props/trolley.png', 'ui/board_panel.png', 'ui/speech_bubble.png', 'ui/wood_plank.png', 'characters/chiku.png', 'characters/bobo.png']
+['backgrounds/' + STORY.map(s => s.bg).join(',backgrounds/'), 'backgrounds/story_00_mine_outside.jpg', 'backgrounds/story_07_bobo_pointing.jpg', 'backgrounds/cover.jpg', 'backgrounds/story_03b_cave_entrance.jpg', 'backgrounds/story_03c_cave_tunnel.jpg', 'backgrounds/game_bg.jpg', 'props/stone_round.png', 'props/tray.svg', 'props/trolley.png', 'ui/board_panel.png', 'ui/speech_bubble.png', 'ui/wood_plank.png', 'characters/chiku.png', 'characters/bobo.png']
   .join(',').split(',').forEach(p => { const i = new Image(); i.src = IMG + p; });
+
+/* instruction panel follows its text: measure the natural width, then animate to it (left side stays put) */
+(function () {
+  const vo = $('vo'), line = $('voLine'); if (!vo || !line) return;
+  const MIN = 620, MAX = 1300;
+  let pending = 0;
+  function fitVo() {
+    const from = vo.offsetWidth;
+    vo.style.transition = 'none'; vo.style.width = 'max-content';
+    const want = Math.max(MIN, Math.min(MAX, vo.offsetWidth));
+    vo.style.width = from + 'px'; void vo.offsetWidth; vo.style.transition = '';
+    vo.style.width = want + 'px';
+  }
+  new MutationObserver(() => { cancelAnimationFrame(pending); pending = requestAnimationFrame(fitVo); })
+    .observe(line, { childList: true, characterData: true, subtree: true });
+  fitVo();
+})();
+
+/* ===================== LEVEL 1: Back + Pause buttons ===================== */
+(function () {
+  const g = $('game');
+  g.insertAdjacentHTML('beforeend', `<button id="g1Back" class="navBtn" aria-label="Back to the previous chamber"><b>◀</b></button>
+    <button id="g1Pause" class="navBtn pz" aria-label="Pause"><i></i><i></i></button>
+    <div id="g1Paused" class="pauseOv" hidden><h2>Paused</h2><button class="plankBtn big" id="g1Resume">Resume</button></div>`);
+  const freeze = on => {
+    document.getAnimations().forEach(a => { try { on ? a.pause() : a.play(); } catch (e) { } });
+    document.body.classList.toggle('gamePaused', on);
+  };
+  $('g1Pause').onclick = () => { SFX.tap(); hush(); stopIdle(); handHide(); freeze(true); $('g1Paused').hidden = false; };
+  $('g1Resume').onclick = () => {
+    SFX.tap(); $('g1Paused').hidden = true; freeze(false);
+    // repeat the current instruction so the child knows what to do next
+    const t = $('voLine').textContent.trim(); if (t) speak(t, (L() && L().markBy) || 'Bobo');
+  };
+  // Back: previous chamber (chamber 1 → back to the cover)
+  $('g1Back').onclick = () => {
+    SFX.tap(); $('g1Paused').hidden = true; freeze(false); hush(); stopIdle(); handHide();
+    if (S.li > 0) return loadLevel(S.li - 1);
+    location.href = location.pathname + location.search.replace(/[?&](ch|lvl)=\d+/g, '');
+  };
+})();

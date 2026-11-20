@@ -127,7 +127,7 @@ button{font-family:inherit}
 /* ---------- trolley train ---------- */
 #train{position:absolute;left:0;right:0;bottom:70px;display:flex;justify-content:center;align-items:flex-end;gap:0;z-index:40;transition:transform 2.2s cubic-bezier(.5,0,.8,.4)}
 #train.rollout{transform:translateX(1700px)}
-#train.rollin{animation:rollin 1.6s cubic-bezier(.2,.7,.3,1) both}
+
 @keyframes rollin{from{transform:translateX(-1700px)}to{transform:none}}
 #train.bump .car{animation:bump .35s ease-in-out infinite}
 @keyframes bump{50%{transform:translateY(-4px) rotate(.4deg)}}
@@ -140,7 +140,7 @@ button{font-family:inherit}
 .seat .who{position:absolute;bottom:195px;left:50%;width:200px;transform:translateX(-50%);z-index:1}
 .seat .who img,.seat .who svg{width:100%;display:block}
 .seat .who svg{margin-bottom:-12px}
-.seat .bucket{position:absolute;left:0;bottom:64px;width:192px;height:141px;z-index:2;background:url(../assets/images/props/bucket.png) center/100% 100% no-repeat}
+.seat .bucket{position:absolute;left:-2px;bottom:108px;width:196px;height:56px;z-index:2;background:url(../assets/images/props/tray.svg?v=1795165798) center/100% 100% no-repeat;filter:drop-shadow(0 6px 5px rgba(0,0,0,.45))}
 .seat .bucket::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:inherit;
   clip-path:polygon(0 21%,12% 26%,30% 30%,50% 31.5%,70% 30%,88% 26%,100% 21%,100% 100%,0 100%)}
 .seat .pile{position:absolute;left:8%;right:8%;bottom:60%;height:56px;display:flex;flex-wrap:wrap-reverse;justify-content:center;align-content:flex-start;z-index:1;--ps:64px}
@@ -335,11 +335,321 @@ button{font-family:inherit}
 .handHam .sw{position:absolute;inset:0}
 .handHam svg{width:100%;height:100%;display:block}
 
-/* story: golden rings around the 3 stones */
-.stoneRing{position:absolute;border-radius:50%;pointer-events:none;z-index:2;border:7px solid #FFC23A;
-  box-shadow:0 0 18px 6px rgba(255,170,40,.85),inset 0 0 18px 6px rgba(255,190,60,.6);
-  animation:ringIn .5s cubic-bezier(.3,1.6,.5,1) both,ringGlow 1.4s ease-in-out .5s infinite}
-@keyframes ringIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes ringGlow{50%{box-shadow:0 0 30px 10px rgba(255,190,60,1),inset 0 0 24px 8px rgba(255,200,80,.75);border-color:#FFE07A}}
-.stoneRing b{position:absolute;left:50%;top:-34px;transform:translateX(-50%);width:62px;height:62px;border-radius:50%;background:linear-gradient(#FFE38A,#F6A93C);
-  border:4px solid #fff;color:#5A2E0E;font:800 40px/54px 'Baloo 2',sans-serif;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,.45);animation:pop .45s ease-out}
+/* story: one golden line around each stone, with a bright glint running round it */
+.stoneRing{position:absolute;pointer-events:none;z-index:2;animation:ringIn .6s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes ringIn{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.stoneRing svg{width:100%;height:100%;display:block;overflow:visible}
+.stoneRing .gl{fill:none;stroke:#FFC93C;stroke-width:2.2;vector-effect:non-scaling-stroke;stroke-width:5px;filter:drop-shadow(0 0 4px rgba(255,190,60,.9))}
+.stoneRing .run{fill:none;stroke:#FFF6C8;stroke-width:7px;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-dasharray:12 88;filter:drop-shadow(0 0 6px #FFE38A);animation:ringRun 2.2s linear infinite}
+@keyframes ringRun{to{stroke-dashoffset:-100}}
+
+/* Level 1 incorrect feedback polish */
+.seat.emptybad .bucket{filter:drop-shadow(0 0 16px #FF3B2F) drop-shadow(0 0 6px #FF6B5E)}
+#actions{z-index:72;top:120px;left:auto;right:28px;justify-content:flex-end}
+#actions .plankBtn{font-size:36px;padding:26px 46px 30px;min-width:0}
+#btnAgain{animation:btnPulse 1.4s ease-in-out infinite}
+
+/* Level 1: flat metal trays instead of buckets */
+.seat .bucket::after{display:none}
+.seat .who{bottom:140px}
+
+.seat .badge{bottom:200px}
+
+/* pieces lie flat inside the tray bed */
+.seat .pile{left:12.5%;right:12.5%;top:19%;bottom:15%;height:auto;display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:0;overflow:visible}
+.seat .pile svg{margin:0;padding:1px;box-sizing:border-box;filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.45))}
+
+/* ===== incorrect feedback: Oops pop + red glow/wiggle, Hint card ===== */
+.fbRed{filter:drop-shadow(0 0 14px #FF3B2F) drop-shadow(0 0 5px #FF6B5E)!important}
+.oopsPop{position:absolute;z-index:120;transform:translate(-50%,-100%);display:flex;align-items:center;gap:12px;padding:10px 26px 10px 12px;border-radius:999px;
+  background:linear-gradient(#FFF1EE,#FFD3CB);border:5px solid #E5483B;box-shadow:0 0 24px rgba(229,72,59,.7),0 8px 16px rgba(0,0,0,.4);
+  font:800 36px/1.1 'Baloo 2',sans-serif;color:#8E1F14;white-space:nowrap;pointer-events:none;animation:oopsIn 1.9s ease forwards}
+.oopsPop i{font-style:normal;width:46px;height:46px;border-radius:50%;background:#E5483B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px}
+@keyframes oopsIn{0%{transform:translate(-50%,-60%) scale(.3);opacity:0}12%{transform:translate(-50%,-100%) scale(1.12);opacity:1}20%{transform:translate(-50%,-100%) scale(1)}
+  26%{transform:translate(calc(-50% - 8px),-100%)}32%{transform:translate(calc(-50% + 8px),-100%)}38%{transform:translate(-50%,-100%)}85%{opacity:1}100%{transform:translate(-50%,-125%);opacity:0}}
+#hintCard{position:absolute;right:36px;bottom:36px;z-index:115;width:520px;padding:16px 34px 18px;border-radius:26px;
+  background:linear-gradient(#FFFBE9,#FFEDB8);border:5px solid #F6B73C;box-shadow:0 0 30px rgba(255,190,60,.75),0 10px 22px rgba(0,0,0,.45);text-align:center;pointer-events:none}
+#hintCard p b{color:#C2561A}
+#hintCard>b{display:inline-block;font:800 30px/1 'Baloo 2',sans-serif;color:#B4660A;background:#FFE08A;border-radius:999px;padding:6px 18px;margin-bottom:6px}
+#hintCard p{margin:0;font:700 32px/1.15 'Baloo 2',sans-serif;color:#4A2410}
+#hintCard.show{animation:hintIn .5s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes hintIn{from{transform:translateX(130%)}to{transform:none}}
+#voLine.long{font-size:36px}
+#voLine.xlong{font-size:31px}
+.hintInline{display:inline-block;padding:8px 22px;border-radius:18px;background:linear-gradient(#FFFBE9,#FFEDB8);border:4px solid #F6B73C;box-shadow:0 0 18px rgba(255,190,60,.6);
+  font:700 30px/1.15 'Baloo 2',sans-serif;color:#4A2410;animation:pop .45s ease-out}
+.hintInline b{color:#B4660A;margin-right:6px}
+#vo.hint::after{content:"💡 Hint";position:absolute;right:46px;top:-26px;z-index:2;font:800 26px/1 'Baloo 2',sans-serif;color:#B4660A;background:#FFE08A;border:3px solid #F6B73C;border-radius:999px;padding:6px 16px;animation:pop .45s ease-out}
+#vo.hint{filter:drop-shadow(0 0 16px rgba(255,190,60,.95)) drop-shadow(0 8px 12px rgba(0,0,0,.45))}
+.oopsPop.below{transform:translate(-50%,0)}
+
+/* ===== story: what is an improper fraction? (teaching + picture questions) ===== */
+#teach{position:absolute;inset:0;z-index:10;overflow:hidden}
+#teach .tDim{position:absolute;inset:0;background:rgba(15,8,4,.5)}
+#teach .tBoard{position:absolute;left:330px;top:40px;width:1260px;height:640px;border-width:22px}
+#teach .tBoard svg{position:absolute;inset:0;width:100%;height:100%}
+#teach #tHtml{position:absolute;inset:0}
+#teach .tChar{position:absolute;bottom:-10px;width:330px}
+#teach .tChar.left{left:-10px}
+#teach .tChar.right{right:-10px}
+#teach .tChar .rigbox,#teach .tChar img{width:100%}
+#teach .tChar.talking{animation:talk .5s ease-in-out 2}
+#tBubble{position:absolute;top:720px;width:900px;min-height:150px;left:510px;padding:20px 50px 46px}
+#tBubble p{margin:0;text-align:center;font-weight:700;color:#3B2414;line-height:1.15}
+#tBubble p b{color:#C2561A}
+#teach .ck{fill:rgba(255,255,255,.12);stroke:#F4F2EA;stroke-width:6;stroke-linejoin:round}
+#teach .ckCut{stroke:#FFE38A;stroke-width:5;stroke-dasharray:10 8}
+#teach .ckLit .ck{fill:rgba(255,227,138,.35);stroke:#FFE38A}
+#teach .ckNum{fill:#FFE38A;font:800 40px 'Baloo 2',sans-serif;text-anchor:middle}
+#teach .ckArrow{fill:none;stroke-width:6;stroke-dasharray:14 10;stroke-linecap:round;animation:ckDash .8s linear infinite}
+#teach .ckLab.mid{font-size:54px}
+#teach .ckLab.small{font-size:40px;font-weight:700}
+#teach .ckLab.note{font-size:34px;font-weight:700}
+#teach .ckLab.yel{color:#FFE38A}
+#teach .ckLab.blu{color:#9BE7FF}
+#teach .tFrac{display:inline-flex;flex-direction:column;align-items:center;font-size:120px;line-height:1}
+#teach .tFrac i{font-style:normal;padding:0 10px}
+#teach .tFrac i:first-child{border-bottom:9px solid #F4F2EA;padding-bottom:6px;margin-bottom:6px}
+#teach .ckGlow{color:#FFE38A;text-shadow:0 0 22px rgba(255,227,138,.95)}
+/* picture questions */
+#teach .tq{position:absolute;inset:0;padding:22px 40px;color:#F4F2EA;text-align:center}
+#teach .tq h3{margin:0 0 12px;font:800 44px/1.1 'Baloo 2',sans-serif;color:#FFE38A}
+#teach .tqRow{display:flex;align-items:center;justify-content:center;gap:70px;height:300px}
+#teach .tqWhole{width:250px}
+#teach .tqWhole svg{width:210px;height:210px;filter:drop-shadow(0 8px 8px rgba(0,0,0,.45))}
+#teach .tqWhole p{margin:4px 0 0;font:700 32px/1.1 'Baloo 2',sans-serif}
+#teach .tqWhole b{color:#FFE38A}
+#teach .tqPile{width:560px;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:18px;border-radius:24px;border:4px dashed rgba(244,242,234,.5)}
+#teach .tqPile span{position:relative;width:96px;height:96px}
+#teach .tqPile span svg{width:100%;height:100%;filter:drop-shadow(0 5px 5px rgba(0,0,0,.45))}
+#teach .tqPile span.lit svg{filter:drop-shadow(0 0 14px #FFE38A)}
+#teach .tqPile span[data-n]::after{content:attr(data-n);position:absolute;left:50%;top:-14px;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;
+  background:#FFE38A;color:#5A2E0E;font:800 28px/36px 'Baloo 2',sans-serif;border:3px solid #7A3E12}
+#teach .tqOpts{display:flex;justify-content:center;gap:60px;margin-top:6px}
+#teach .tqOpt{width:170px;height:170px;border-radius:26px;border:6px solid #9A5A26;background:linear-gradient(#FFFDF8,#F1DDBE);color:#3B2414;
+  font:800 110px/1 'Baloo 2',sans-serif;cursor:pointer;box-shadow:0 8px 0 #7A4318;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+#teach .tqOpt:hover{transform:translateY(-4px)}
+#teach .tqOpt .fr{font-size:.62em}
+#teach .tqOpt .fr>i:first-child{border-bottom-width:6px}
+#teach .tqOpt.right{background:linear-gradient(#C8F2BF,#7FD872);border-color:#1F6E2F;box-shadow:0 0 30px rgba(63,175,90,.9),0 8px 0 #155C0D}
+#teach .tqOpt.pulse{animation:kp .8s ease-in-out infinite}
+#teach .tqTip{min-height:50px;margin:12px 0 0}
+#teach .ckLab{opacity:1;animation:none}
+#teach .ckLab.nowrap{white-space:nowrap}
+#tBubble.show{animation:none}
+#tBubble{transition:none}
+#teach .tqRow{gap:50px;height:310px}
+#teach .tqWhole{width:300px;flex:none;display:flex;flex-direction:column;align-items:center}
+#teach .tqWhole svg{width:190px;height:190px}
+#teach .tqWhole p{white-space:nowrap}
+#teach .tqPile{width:600px;min-height:150px;align-content:center}
+#teach .tq svg{position:static;inset:auto}
+#teach .tqWhole svg{width:190px;height:190px}
+#teach .tqPile span svg{width:100%;height:100%}
+#teach .tqOpt svg{display:none}
+
+/* Name it: the miner holds up their tray of gems */
+.shower{position:relative;height:430px;justify-content:flex-end!important;gap:0!important}
+.shower .showWho{position:absolute;left:50%;bottom:110px;width:250px;transform:translateX(-50%)}
+.shower .showWho img,.shower .showWho svg,.shower .showWho .rigbox{width:100%;display:block}
+.shower .showTray{position:relative;z-index:2;width:520px;min-height:130px;padding:26px 30px 30px;display:flex;align-items:center;justify-content:center;
+  background:url(../assets/images/props/tray.svg?v=1795165798) center/100% 100% no-repeat;filter:drop-shadow(0 10px 10px rgba(0,0,0,.45))}
+.shower .showTray::before,.shower .showTray::after{content:"";position:absolute;top:-34px;width:62px;height:62px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#A06A40,#5E3517);border:4px solid #3B200C}
+.shower .showTray::before{left:30px}
+.shower .showTray::after{right:30px}
+.shower .tipped{max-width:440px;gap:4px}
+.shower .tipped .pc{width:62px;height:62px}
+.shower .onegem{position:absolute;left:-40px;top:20px;width:120px;height:120px;z-index:3}
+.shower{align-items:center!important}
+.shower .showWho{width:330px;bottom:96px;left:50%;transform:translateX(-56%)}
+.shower .showTray{width:480px;margin:0 auto}
+.shower{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-end!important}
+.shower .showWho{position:relative!important;left:auto!important;bottom:auto!important;transform:none!important;width:300px;margin-bottom:-120px;z-index:1}
+.shower .showTray{z-index:2}
+.shower .showWho{width:250px!important;margin-bottom:-58px!important}
+.shower{height:470px!important;margin-top:-30px}
+
+/* cut board: miner faces show who gets a piece */
+.faceRow{display:flex;gap:14px;justify-content:center;margin-top:16px}
+.faceRow .face{position:relative;display:flex;flex-direction:column;align-items:center;font:800 22px/1 'Baloo 2',sans-serif;color:#5A2E0E;transition:filter .2s,opacity .2s}
+.faceRow .face span{margin-top:4px}
+.faceRow .face b{position:absolute;right:-6px;top:-6px;width:32px;height:32px;border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:22px;border:3px solid #fff}
+.faceRow .face.got b{display:flex;background:#3FAF5A}
+.faceRow .face.got b::after{content:"✓"}
+.faceRow .face.none{filter:grayscale(1);opacity:.55;animation:wig .32s linear 3}
+.faceRow .face.none b{display:flex;background:#E5483B}
+.faceRow .face.none b::after{content:"✕"}
+.mf{position:relative;width:70px;height:72px;overflow:visible}
+.mf .av{position:absolute;left:0;top:0;transform:scale(.43);transform-origin:0 0}
+#faceMap{position:absolute;inset:0;pointer-events:none}
+#faceMap .pf{position:absolute;transform:translate(-50%,-50%) scale(.82);animation:pop .4s ease-out both}
+#faceMap .pf.extra{width:54px;height:54px;border-radius:50%;background:#E5483B;color:#fff;border:4px solid #fff;font:800 34px/46px 'Baloo 2',sans-serif;text-align:center;box-shadow:0 0 16px rgba(229,72,59,.8)}
+#faceMap .pf{transform:translate(-50%,-50%) scale(1.05)}
+#faceMap .pf .mf{margin:0}
+.faceRow .face.none .mf{outline:none}
+#teach .tChar{width:330px;bottom:30px;filter:drop-shadow(0 10px 10px rgba(0,0,0,.5))}
+#teach .tChar.left{left:150px}
+#teach .tChar.right{right:150px;left:auto}
+#tBubble{left:520px;width:880px}
+#teach .tChar{bottom:0!important}
+#teach .tChar.left{width:380px!important;left:110px!important}
+#teach .tChar.right{width:300px!important;right:150px!important}
+/* cut board faces: bigger + centred on each part (centring via margins so the pop animation can't undo it) */
+.mf{width:96px;height:98px}
+.mf .av{transform:scale(.59)}
+.faceRow{gap:22px;margin-top:20px}
+.faceRow .face{font-size:26px}
+.faceRow .face b{width:36px;height:36px;font-size:24px}
+#faceMap .pf{transform:none!important;margin:-43px 0 0 -42px}
+#faceMap .pf .mf{width:84px;height:86px}
+#faceMap .pf .mf .av{transform:scale(.515)}
+#faceMap .pf.extra{margin:-30px 0 0 -30px;width:60px;height:60px;line-height:52px}
+#faceMap .pf .mf{filter:drop-shadow(0 4px 4px rgba(0,0,0,.45))}
+#teach .ckLab.note{padding:4px 16px;border-radius:14px;background:rgba(0,0,0,.28);font-size:32px}
+#hintCard.l2{bottom:190px;right:30px;width:500px;padding:12px 28px 14px}
+#hintCard.l2 p{font-size:30px}
+/* hint: bulb only, no "Hint" word */
+.hintInline{display:inline-flex;align-items:center;gap:12px}
+.hintInline b.bulb,#hintCard b.bulb{font-size:34px;margin:0;background:none;padding:0}
+.hintInline .hintFr{font-size:26px;font-weight:700;color:#4A2410}
+.hintInline .hintFr>i{padding:0 8px}
+.hintInline .hintFr>i:first-child{border-bottom:3px solid #4A2410}
+/* name-it hint: word fraction (reference) — tray pieces → top line, whole gem → bottom line */
+.wordFr{display:flex;align-items:center;gap:10px;width:330px;margin:0 6px}
+.wordFr[hidden]{display:none}
+.wordFr.pop{animation:hintIn .5s cubic-bezier(.3,1.5,.5,1) both}
+.wordFr .bulb{font-size:40px}
+.wordFr .wf{display:flex;flex-direction:column;align-items:center;text-align:center;font:700 26px/1.15 'Baloo 2',sans-serif;color:#4A2410}
+.wordFr .wf i{display:block;width:100%;height:4px;border-radius:2px;background:#4A2410;margin:8px 0}
+.wordFr #wfTop{color:#C0601C}.wordFr #wfBot{color:#2F63DB}
+.wordFr{width:400px}.wordFr .wf{font-size:25px}.wordFr #wfTop{white-space:nowrap}
+#keys .key.locked{opacity:.35;pointer-events:none;filter:grayscale(.6)}
+/* hint on the cut board: numbered, glowing miner faces (no trolley over the board) */
+#faceRow .face{position:relative}
+#faceRow.hintOn .face .mf{border-radius:50%;animation:faceGlow 1s ease-in-out infinite}
+@keyframes faceGlow{0%,100%{box-shadow:0 0 0 4px #F6B73C,0 0 10px rgba(246,183,60,.6)}50%{box-shadow:0 0 0 6px #F6B73C,0 0 26px rgba(246,183,60,1)}}
+#faceRow .fbadge{position:absolute;top:-10px;left:-10px;width:40px;height:40px;border-radius:50%;background:#FFE08A;border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.35);
+  font:800 26px/34px 'Baloo 2',sans-serif;font-style:normal;color:#5A2E0E;text-align:center;z-index:2}
+/* Level 1: the board is always the same size and in the same place */
+#board{width:1560px!important;height:720px;box-sizing:border-box;top:290px;display:flex;flex-direction:column;justify-content:center}
+#board>*{flex:0 0 auto}
+/* name-it hint: the cut gem sits under the bottom words, its arrow points straight up (no crossing, nothing on the lantern) */
+.wordFr{flex-direction:column;gap:6px;align-items:center}
+.wordFr .wfRow{display:flex;align-items:center;gap:10px}
+.wordFr .onegem{position:static!important;width:96px!important;height:96px!important;margin-top:44px}
+.wordFr .ogLab{font:800 24px/1 'Baloo 2',sans-serif;color:#2F63DB;white-space:nowrap}
+.wordFr .onegem[hidden]+.ogLab{display:none}
+/* pieces sit inside the tray bed in even rows (max 6 per row), never on the rim */
+.shower .showTray{padding:40px 70px 44px!important;min-height:150px}
+.shower .tipped{display:grid!important;grid-template-columns:repeat(var(--cols,6),52px);gap:10px 8px;justify-content:center;max-width:none}
+.shower .tipped .pc{width:52px!important;height:52px!important}
+.shower .tipped .pc i{top:-22px;font-size:22px}
+.shower .showTray{padding:58px 70px 52px!important}
+/* name board: keep everything inside the frame (keypad off the right edge / pickaxes) */
+#nameRow{gap:22px!important}
+#nameRow .shower{width:500px!important}
+#nameRow .wordFr{width:340px}
+#nameRow .wordFr .wf{font-size:23px}
+#nameRow .pad{grid-template-columns:repeat(3,80px);gap:10px}
+#nameRow .pad button{height:64px;font-size:38px}
+/* tray rows: each row centred (the short row too), clear of the top and bottom rim */
+.shower .tipped{display:flex!important;flex-wrap:wrap;justify-content:center;gap:8px 8px;width:calc(var(--cols,6) * 60px);max-width:none}
+.shower .tipped .pc{width:50px!important;height:50px!important}
+.shower .showTray{padding:56px 70px 66px!important}
+.shower .showTray{padding:76px 70px 70px!important}
+.shower .showTray{padding:44px 70px 40px!important}
+/* instruction panel sizes itself to its text: avatar circle and right cap keep their shape, the middle stretches */
+#vo{width:max-content!important;min-width:620px;max-width:1300px;left:50%!important;transform:translateX(-50%);height:166px}
+#vo::before{background:none!important;border-style:solid;border-color:transparent;border-width:0 70px 0 170px;border-image:url(../assets/images/ui/vo_bar_long.png) 0 125 0 300 fill stretch;box-sizing:border-box}
+#voLine{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;height:166px;box-sizing:border-box;padding:24px 64px 8px 196px}
+/* panel drawn in CSS (no stretched picture = no seams) */
+#vo::before{border:0!important;border-image:none!important;left:90px;top:16px;bottom:10px;right:0;border-radius:0 70px 70px 0;
+  background:#FBE8D0!important;box-shadow:inset 0 0 0 7px #D9662B,0 0 0 3px #5A2A12}
+#voAv{border-radius:50%;background:#FDEEDC;box-shadow:inset 0 0 0 8px #D9662B,0 0 0 3px #5A2A12;overflow:hidden}
+#vo:has(#voLine:empty){visibility:hidden}
+/* instruction panel: left edge (avatar) fixed, right edge grows/shrinks with the text, smoothly */
+#vo{left:330px!important;transform:none!important;transition:width .45s cubic-bezier(.3,1.25,.5,1),opacity .3s}
+/* Level 2 hint: one slim strip in the free band between the plank and the stones (no characters, no keys underneath) */
+#hintCard.l2{left:0;right:0;margin:0 auto;bottom:auto;top:222px;width:max-content;max-width:1560px;display:flex;align-items:center;gap:12px;padding:8px 26px;border-radius:999px}
+#hintCard.l2>b.bulb{font-size:30px;margin:0}
+#hintCard.l2 p{font-size:28px;white-space:nowrap}
+/* cut board: clear spacing between title, question, keys, faces and tip (no touching text) */
+#board h3{margin:0 0 26px!important}
+#board .col{gap:18px}
+#board #faceRow{margin-top:6px}
+#board #faceRow .face span{line-height:1.1;margin-top:6px}
+#board #ptip{margin-top:6px;min-height:44px}
+/* ---------- no stretched art: 9-slice frames keep corners (lantern, pickaxes, bubble tail, tray ends) undistorted ---------- */
+.board{background:none!important;isolation:isolate}
+.board::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-style:solid;border-width:240px 247px 143px 195px;
+  border-image:url(../assets/images/ui/board_panel.png) 185 190 110 150 fill stretch}
+.bubble{background:none!important;isolation:isolate}
+.bubble::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-style:solid;border-width:42px 48px 45px 84px;
+  border-image:url(../assets/images/ui/speech_bubble.png) 70 80 75 140 fill stretch}
+
+.shower .showTray{background:none!important;isolation:isolate}
+.shower .showTray::after,.shower .showTray::before{z-index:3}
+.shower .showTray>.tipped{position:relative;z-index:1}
+.shower .showTray{border-style:solid;border-width:22px 34px 26px 34px;border-color:transparent;
+  border-image:url(../assets/images/props/tray.svg) 20 30 22 30 fill stretch}
+/* ---------- one look for every number key and action button ---------- */
+.key,.pad button,#l2keys button{width:84px!important;height:80px!important;font:800 44px/1 'Baloo 2',sans-serif!important;border-radius:16px!important;border:4px solid #9A5A26!important;
+  background:linear-gradient(#FFFDF8,#F1DDBE)!important;color:#3B2414!important;box-shadow:0 6px 0 #7A4318!important;cursor:pointer;transition:transform .1s,box-shadow .1s}
+.key:hover,.pad button:hover,#l2keys button:hover{transform:translateY(-2px)}
+.key:active,.pad button:active,#l2keys button:active{transform:translateY(4px);box-shadow:0 2px 0 #7A4318!important}
+.key.on{background:linear-gradient(#FFE08A,#F6B73C)!important}
+.pad button.del,#l2keys .del{background:linear-gradient(#FF8A80,#E5483B)!important;border-color:#8E1F16!important;color:#fff!important;box-shadow:0 6px 0 #8E1F16!important;font-size:36px!important}
+.pad button.ok,#l2keys .go{width:auto!important;min-width:150px;background:linear-gradient(#8EE07F,#3FAF5A)!important;border-color:#1F6E2F!important;color:#fff!important;text-shadow:0 2px 0 #1F6E2F;box-shadow:0 6px 0 #155C0D!important}
+.pad button.ok{width:100%!important}
+.shower .showTray{padding:24px 36px 16px!important}
+/* board: drawn whole at the art's own proportions (1200x484 → 1560x630), so nothing stretches and there are no seams */
+.board::before{border:0!important;border-image:none!important;background:url(../assets/images/ui/board_panel.png) center/100% 100% no-repeat}
+#board{height:630px!important;top:320px!important;padding:96px 100px 60px!important}
+/* name board fits the board: shorter miner + tray block */
+#board .shower{height:390px!important;margin-top:0!important}
+#board .shower .showWho{width:210px!important;margin-bottom:-46px!important}
+/* speech bubble drawn in CSS (any size, no stretched art, no seams); tail points at the speaker */
+.bubble::before{border:0!important;border-image:none!important;background:#FBE8D0!important;border-radius:56px;box-shadow:inset 0 0 0 6px #D9662B,0 0 0 3px #5A2A12}
+.bubble::after{content:'';position:absolute;left:56px;bottom:-34px;width:56px;height:44px;z-index:-1;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 44'%3E%3Cpath d='M4 0 L10 40 L50 0' fill='%23FBE8D0' stroke='%235A2A12' stroke-width='9' stroke-linejoin='round'/%3E%3Cpath d='M4 0 L10 40 L50 0' fill='%23FBE8D0' stroke='%23D9662B' stroke-width='5' stroke-linejoin='round'/%3E%3Crect x='0' y='-6' width='56' height='12' fill='%23FBE8D0'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+.bubble.right::after,#cxBubble.flip::after{left:auto;right:56px;transform:scaleX(-1)}
+#cxBubble.flip::before{transform:none!important}
+#board{justify-content:flex-start!important}
+#board #nameRow{margin-top:-6px}
+#board .shower{height:350px!important}
+#board #ptip:empty{min-height:0!important;margin:0!important}
+#board:has(#nameRow) h3{margin-bottom:10px!important}
+#board #nameRow{padding-right:110px;padding-top:14px}
+#board #nameRow .pad{gap:8px}
+#board #nameRow .pad button{width:76px!important;height:66px!important;font-size:38px!important}
+#board #nameRow .pad button.ok{grid-column:1/-1!important;width:auto!important}
+/* the old bubble art had its tail inside the box; the CSS bubble doesn't, so text sits exactly in the middle */
+.bubble{padding:22px 44px!important;box-sizing:border-box}
+.bubble p{text-wrap:balance}
+#cxBubble.flip::before{background:#FBE8D0!important;transform:none!important}
+/* shared round nav buttons (Back / Pause), same look in Level 1 and Level 2 */
+.navBtn{position:absolute;left:22px;width:96px;height:96px;border-radius:50%;border:7px solid #fff;cursor:pointer;z-index:80;padding:0;
+  background:linear-gradient(#FFC93C,#F29A0E);box-shadow:0 6px 14px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;gap:9px;transition:transform .12s}
+.navBtn:hover{transform:scale(1.06)}.navBtn:active{transform:scale(.94)}
+.navBtn b{color:#fff;font-size:40px;line-height:1;margin-left:-6px}
+.navBtn.pz i,#l2Pause i{display:block;width:13px;height:38px;border-radius:4px;background:#fff}
+#g1Back,#l2Back{top:350px}
+#g1Pause{top:470px}
+#l2Pause{top:470px!important;z-index:80!important}
+.pauseOv{position:absolute;inset:0;z-index:400;background:rgba(10,5,2,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px}
+.pauseOv[hidden]{display:none}
+.pauseOv h2{margin:0;font-size:96px;color:#FFE9B8;text-shadow:0 4px 0 #3a1c08}
+body.gamePaused *{animation-play-state:paused!important}
+#l2Paused{z-index:400!important}
+
+/* Back + Pause: small, top-right, same spot in Level 1 and Level 2 (beside the chamber menu) */
+.navBtn{width:64px!important;height:64px!important;border-width:5px!important;gap:6px!important;left:auto!important;top:13px!important;z-index:90!important}
+.navBtn b{font-size:26px!important;margin-left:-4px}
+.navBtn.pz i,#l2Pause i{width:9px!important;height:24px!important}
+#g1Back,#l2Back{left:1690px!important;top:13px!important}
+#g1Pause,#l2Pause{left:1766px!important;right:auto!important;width:64px!important;height:64px!important;border-width:5px!important;gap:6px!important;top:13px!important;z-index:90!important}
+/* keep the top-right controls inside the safe area on narrow/tall screens */
+#hud{right:340px!important}
+#g1Back,#l2Back{left:1600px!important;top:12px!important}
+#g1Pause,#l2Pause{left:1676px!important;top:12px!important}
