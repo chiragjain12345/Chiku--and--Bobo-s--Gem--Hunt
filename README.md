@@ -36,3 +36,4 @@ arrive, pick number, pick-number hint, trace, hammer, share, wrong share (too ma
 Tools: speed 1×/2×/4×, sound on/off, restart, auto-play from a chamber.
 
 **To remove before release:** delete `js/devmenu.js` and the `<script src="js/devmenu.js">` line in `index.html`. Nothing else depends on it.
+# Chiku--and--Bobo-s--Gem--Hunt
