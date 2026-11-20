@@ -22,9 +22,8 @@ The chamber dropdown (top right) lets a teacher jump to any chamber. `index.html
 - `index.html`, `css/style.css`, `js/game.js` — the game
 - `assets/images/backgrounds/` — story scenes + chamber background (from Figma)
 - `assets/images/characters/` — Chiku, Bobo (transparent cut-outs)
-- `assets/images/props/` — stone, glowing stone, bucket, trolley
+- `assets/images/props/` — stone, tray, trolley
 - `assets/images/ui/` — board panel, speech bubbles, wood plank button, VO bar
-- `assets/images/reference/` — game-screen mock-up from Figma (not used in-game)
 - `assets/audio/vos`, `assets/audio/sfxs` — empty, ready for recorded audio
 
 Golu, Mitthu and Tinku and the gems are drawn in code (no Figma art for them yet).
@@ -36,4 +35,5 @@ arrive, pick number, pick-number hint, trace, hammer, share, wrong share (too ma
 Tools: speed 1×/2×/4×, sound on/off, restart, auto-play from a chamber.
 
 **To remove before release:** delete `js/devmenu.js` and the `<script src="js/devmenu.js">` line in `index.html`. Nothing else depends on it.
+# Chiku--and--Bobo-s--Gem--Hunt
 # Chiku--and--Bobo-s--Gem--Hunt
