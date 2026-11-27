@@ -126,6 +126,13 @@
         // red glow + wiggle on the tapped card only (no 'Oops' badge on top of the board)
         SFX.bad(); b.classList.remove('fbRed'); void b.offsetWidth; b.classList.add('fbRed'); wig(b); setTimeout(() => b.classList.remove('fbRed'), 1600);
         if (tries === 1) { await line(r, 'Chiku', a === q.d && bb === q.n ? 'Careful, the top and bottom are swapped!' : 'Oops! Try again.'); }
+        else if (tries >= 3) {
+          // 3rd wrong: only the correct card stays active (no endless loop)
+          opts.forEach((o, j) => { if (j !== rightK) { o.disabled = true; o.classList.add('locked'); } });
+          opts[rightK].classList.add('pulse');
+          await line(r, 'Chiku', `The answer is ${q.n}/${q.d}: ${q.n} pieces in all, and ${q.d} pieces make one whole. Tap it!`, 34);
+          if (ok(r)) handTapOn(opts[rightK]);
+        }
         else {
           $('tqTip').innerHTML = `<span class="hintInline"><b class="bulb">💡</b><span class="fr hintFr"><i>total number of pieces</i><i>number of pieces that make 1 whole</i></span></span>`;
           opts[rightK].classList.add('pulse');

@@ -349,6 +349,7 @@ function oops(el, text = 'Oops! Try again.', below = false) {
   SFX.bad();
   if (el) { el.classList.remove('fbRed'); void el.offsetWidth; el.classList.add('fbRed'); wig(el); setTimeout(() => el.classList.remove('fbRed'), 1600); }
   document.querySelectorAll('.oopsPop').forEach(e => e.remove());
+  return;   // no red 'Oops' badge: the red glow + wiggle + sound mark the mistake, the words are in the instruction panel
   const p = document.createElement('div'); p.className = 'oopsPop'; p.innerHTML = `<i>✕</i><span>${text}</span>`;
   const r = el ? rel(el) : { cx: 960, y: 520 };
   if (el && el.closest && el.closest('#board')) below = true;   // on a board: badge goes under the item, never over the heading
@@ -424,6 +425,7 @@ function stopIdle() { clearTimeout(idleT); idleCfg = null; handHide(); }
 function say(who, text) {
   $('voAv').innerHTML = avatarHTML(who);
   { const n = String(text).length; $('voLine').classList.toggle('long', n > 60 && n <= 85); $('voLine').classList.toggle('xlong', n > 85); }
+  { const p = $('ptip'); if (p && norm(p.textContent) === norm(text)) p.textContent = ''; }   // spoken in the panel → not also on the board
   $('voLine').innerHTML = `<span>${String(text).replace(/(\d+\/\d+)/g, '<b>$1</b>')}</span>`;
   const vo = $('vo'); vo.classList.remove('pop'); void vo.offsetWidth; vo.classList.add('pop');
   const av = $('voAv'); av.classList.remove('talk'); void av.offsetWidth; av.classList.add('talk');
@@ -614,7 +616,9 @@ function showBoard(html, width) {
   $('dim').hidden = false; S.boardOpen = true;
 }
 function closeBoard() { hideHint(); $('board').hidden = true; $('dim').hidden = true; S.boardOpen = false; $('train').style.zIndex = ''; }
-const tip = (t, bad) => { const p = $('ptip'); if (p) { p.textContent = t; p.classList.toggle('bad', !!bad); } };
+/* board tip line: never repeat what the instruction panel already says (one place only) */
+const norm = x => String(x || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+const tip = (t, bad) => { const p = $('ptip'); if (!p) return; if (t && norm(t) === norm($('voLine').textContent)) t = ''; p.textContent = t; p.classList.toggle('bad', !!bad); };
 
 /* ---------- 1–3: mark (pick number) + trace ---------- */
 function openCut(g) {

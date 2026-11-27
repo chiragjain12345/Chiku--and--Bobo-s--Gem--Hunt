@@ -666,3 +666,4 @@ html,body{overflow:hidden!important;overscroll-behavior:none;position:fixed;inse
 #stage,#board,#big,.cutwrap{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #board{will-change:auto}
 #board .key:hover{transform:none}
+#teach .tqOpt.locked{opacity:.35;pointer-events:none;filter:grayscale(.6)}
