@@ -653,3 +653,16 @@ body.gamePaused *{animation-play-state:paused!important}
 #hud{right:340px!important}
 #g1Back,#l2Back{left:1600px!important;top:12px!important}
 #g1Pause,#l2Pause{left:1676px!important;top:12px!important}
+/* hint counting: numbers on the cut gem, and the word line being counted glows */
+.ogNum{position:absolute;z-index:120;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:#2F63DB;color:#fff;border:3px solid #fff;
+  font:800 24px/32px 'Baloo 2',sans-serif;text-align:center;box-shadow:0 3px 8px rgba(0,0,0,.4);animation:pop .35s ease-out;pointer-events:none}
+.wordFr .wfOn{text-shadow:0 0 12px rgba(255,200,80,.95);transform:scale(1.08);display:inline-block;transition:transform .2s}
+/* 3rd wrong answer in Level 1 "name it": keys greyed, answer boxes locked, Check pulses */
+.pad button.locked{opacity:.35;pointer-events:none;filter:grayscale(.6)}
+.box.locked{pointer-events:none;background:#E8F8E4!important;border-color:#3FAF5A!important;color:#1F6E2F}
+.pad button.ok.pulse{animation:kp 1s ease-in-out infinite}
+/* keep the screen still while the child draws / taps: no page scroll, bounce or text selection */
+html,body{overflow:hidden!important;overscroll-behavior:none;position:fixed;inset:0}
+#stage,#board,#big,.cutwrap{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#board{will-change:auto}
+#board .key:hover{transform:none}

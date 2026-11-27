@@ -390,3 +390,9 @@
 #l2List h4{margin-bottom:8px!important}
 #l2List li{min-height:36px!important;padding-top:0!important;padding-bottom:0!important}
 #l2List li .amt .mix{line-height:1}
+/* Level 2 celebration screen */
+#l2Fin{position:absolute;inset:0;z-index:70;overflow:hidden;background:#1a0f0a}
+#l2Fin[hidden]{display:none}
+#l2Fin .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#l2Fin .finBtns{position:absolute;right:60px;bottom:40px;display:flex;gap:24px}
+#l2Fin .finBtns[hidden]{display:none}

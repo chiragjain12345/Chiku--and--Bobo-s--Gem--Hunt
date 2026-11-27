@@ -233,9 +233,16 @@
     if (!await lineFlip(r, 'Chiku', 'We write it as 2 1/2. We say “two and a half.”')) return false;
     // 5: the 2 → the wholes, the 1/2 → the half
     const arrow = (x1, y1, x2, y2, col) => { const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', `M${x1} ${y1} Q${(x1 + x2) / 2} ${Math.min(y1, y2) - 60} ${x2} ${y2}`); p.setAttribute('class', 'ckArrow'); p.style.stroke = col; svg.appendChild(p); return p; };
-    l2b.classList.add('ckGlow'); arrow(625, 560, 500, 508, '#FFE38A'); [0, 1, 2, 3].forEach(k => halves[k].firstChild.classList.add('lit')); SFX.sparkle();
+    // a chalk box around BOTH wholes → arrow to the 2; later the half → arrow to the 1/2
+    const NS = 'http://www.w3.org/2000/svg', mk = (tag, at) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); svg.appendChild(e); return e; };
+    const curve = (x1, y1, cx, cy, x2, y2, col) => { const p = mk('path', { d: `M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`, class: 'ckArrow' }); p.style.stroke = col;
+      const ang = Math.atan2(y2 - cy, x2 - cx), h = (t, d) => `${x2 - 26 * Math.cos(ang + t)} ${y2 - 26 * Math.sin(ang + t)}`;
+      mk('path', { d: `M${h(.45)} L${x2} ${y2} L${h(-.45)}`, fill: 'none', stroke: col, 'stroke-width': 7, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }); return p; };
+    const box = mk('rect', { x: W1 - R0 - 22, y: Y0 - R0 - 22, width: (W2 - W1) + 2 * R0 + 44, height: 2 * R0 + 44, rx: 34, fill: 'none', stroke: '#FFE38A', 'stroke-width': 7, 'stroke-dasharray': '16 10', class: 'ckBox' });
+    box.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+    l2b.classList.add('ckGlow'); curve(470, Y0 + R0 + 22, 520, 590, 618, 585, '#FFE38A'); [0, 1, 2, 3].forEach(k => halves[k].firstChild.classList.add('lit')); SFX.sparkle();
     if (!await wait(r, 1200)) return false;
-    l2b.classList.remove('ckGlow'); lhb.classList.add('ckGlow'); arrow(800, 580, 955, 508, '#9BE7FF'); [0, 1, 2, 3].forEach(k => halves[k].firstChild.classList.remove('lit')); halves[4].firstChild.classList.add('lit'); SFX.sparkle();
+    l2b.classList.remove('ckGlow'); lhb.classList.add('ckGlow'); mk('rect', { x: HX - R0 - 16, y: Y0 - R0 - 16, width: R0 + 32, height: 2 * R0 + 32, rx: 26, fill: 'none', stroke: '#9BE7FF', 'stroke-width': 7, 'stroke-dasharray': '16 10' }); curve(HX - 50, Y0 + R0 + 18, 900, 600, 808, 585, '#9BE7FF'); [0, 1, 2, 3].forEach(k => halves[k].firstChild.classList.remove('lit')); halves[4].firstChild.classList.add('lit'); SFX.sparkle();
     if (!await lineFlip(r, 'Bobo', 'The 2 is the whole number. The 1/2 is the fraction.')) return false;
     // 6: definition
     svg.querySelectorAll(':scope > :not(defs)').forEach(e => e.remove()); html.innerHTML = '';
@@ -271,20 +278,10 @@
     // the rolled list travels from Bobo to Chiku, then unrolls
     look(ch, 1, -.2); look(bo, -1, 0);
     $('cxBubble').classList.add('flip');
-    if (!await line(r, 'Bobo', 'Our friends back home want gems too! Here’s the list, Chiku.', 580, 330, 560, 34)) return false;
-    hideB(); $('cxBubble').classList.remove('flip'); look(ch, .6, -1); look(bo, -1, -.6);   // both look at the list
-    const rows = (window.L2 && L2.rounds || []).map((rd, i) => {
-      const L = LEVELS[rd.gem], amt = rd.give === 'mix' ? `<span class="mix"><b>${rd.w}</b>${fr(rd.n, rd.d)}</span>` : fr(rd.w * rd.d + rd.n, rd.d);
-      return `<li><span class="gi">${gemSVG(pieces('circle', 1), 46).replace(/url\(#gg1\)/g, `url(#gg${LEVELS.indexOf(L)})`)}</span>${amt}<em>${rd.name[1]}</em></li>`;
-    }).join('');
-    const list = actor(`<div class="cxList"><h4>Gem list</h4><ul>${rows}</ul></div>`, 1300, 110, 640);   // on the right, clear of Chiku & Bobo
-    Object.assign(list.firstChild.style, { transform: 'scale(.75)', transformOrigin: '0 0' });
-    list.firstChild.animate([{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0 0)' }], { duration: 1100, easing: 'ease-out', fill: 'both' });
-    SFX.sparkle(); if (!await wait(r, 2600)) return false;
-    list.animate([{ opacity: 1 }, { opacity: 0, transform: 'translate(-1400px,400px) scale(.2)' }], { duration: 600, fill: 'forwards' });
-    if (!await wait(r, 500)) return false;
+    if (!await line(r, 'Bobo', 'Our friends back home need some gems too!', 580, 330, 560, 34)) return false;
+    hideB(); $('cxBubble').classList.remove('flip');
     look(ch, 1, -.2); look(bo, -1, 0);
-    if (!await line(r, 'Chiku', 'Leave it to me! I’ll uncover just the right number of pieces.', 300, 370, 600, 34)) return false;
+    if (!await line(r, 'Chiku', 'Let’s find some for them! I will uncover the gems, and you collect. Let’s go!', 300, 370, 600, 34)) return false;
     // Chiku hops into the trolley, which rolls into the tunnel
     hideB();
     ch.animate([{ transform: 'none' }, { transform: 'translate(260px,-260px)', offset: .5 }, { transform: 'translate(480px,-120px) scale(.7)' }], { duration: 1000, easing: 'ease-in-out', fill: 'forwards' });

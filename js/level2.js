@@ -225,14 +225,14 @@
     ['story', 'game', 'tunnel'].forEach(id => $(id).hidden = true); $('torch').hidden = true;
     $('lvl2').hidden = false; $('l2Board').hidden = true; $('l2Paused').hidden = true; $('l2Dim').hidden = true; $('l2Ride').hidden = true;
     $('l2Keys').hidden = true; $('l2Done').hidden = false; $('l2Plank').className = '';
-    S2.paused = false; S2.run++; buildChiku(); buildBobo(); if ($('l2List')) $('l2List').hidden = false; $('l2Cart').querySelector('.load').innerHTML = '';
+    S2.paused = false; S2.run++; buildChiku(); buildBobo(); if ($('l2Fin')) $('l2Fin').hidden = true; if ($('l2List')) $('l2List').hidden = false; $('l2Cart').querySelector('.load').innerHTML = '';
   }
   async function start(opts = {}) {
     enter(); const rid = S2.run;
     S2.r = opts.round || 0; S2.phase = 'off';
     if (opts.intro !== false) {
       $('lvl2').hidden = true;
-      await tunnelRide('Level 2 · Mixed Numbers', ['Chiku', 'Bobo']);
+      await tunnelRide('', ['Chiku', 'Bobo']);
       if (!alive(rid)) return;
       $('lvl2').hidden = false; $('l2Stones').innerHTML = ''; setProgress();
       $('l2Plank').style.visibility = 'hidden';
@@ -248,7 +248,7 @@
     S2.parts = Array.from({ length: r.stones }, () => Array(r.d).fill(false));
     hideHint(); S2.gone = null; S2.tries = 0; S2.wTries = 0; S2.lockAns = false; $('l2keys').classList.remove('lockAns'); S2.firstTries = 0; S2.ghost = false; S2.busy = false; S2.phase = 'uncover';
     $('l2Keys').hidden = true; $('l2Done').hidden = false; $('l2Done').classList.remove('ready'); $('l2Plank').className = '';
-    $('l2Plank').style.visibility = ''; setProgress(); setPlank(`Chiku is digging for ${gemName()}…`, true);
+    setProgress(); setPlank('', false); $('l2Plank').style.visibility = 'hidden';   // no heading while digging: the plank only appears for writing the answer
     SFX.whoosh(); buildStones(true); updateDone(); setCounter(); $('l2Count').hidden = false; $('l2Chiku').className = 'idle'; hideBubble();
     [300, 460, 620].forEach(t => setTimeout(() => SFX.pop(), t));
     await sleep(750); if (!alive(rid)) return;
@@ -405,7 +405,7 @@
     const r = R(); S2.phase = 'write'; S2.vals = answer().map(() => ''); S2.box = 0;
     $('l2Done').hidden = true; hideBubble(); $('l2Count').hidden = true;
     const kb = $('l2Keys'); kb.hidden = false; kb.classList.remove('up'); void kb.offsetWidth; kb.classList.add('up');
-    $('l2Plank').classList.add('wide'); drawWrite();
+    $('l2Plank').style.visibility = ''; $('l2Plank').classList.add('wide'); drawWrite();
     walkTo(CH.home);   // step back so Chiku doesn't stand in front of the stone labels
     if (r.ask !== 'mix') speak(`Write ${givenWords(r)} as ${r.give === 'mix' ? 'an improper fraction' : 'a mixed fraction'}.`, 'Chiku');
     // highlight the record-book row that is being filled
@@ -421,7 +421,7 @@
       return check();
     }
     if (d === 'del') { if (S2.vals[S2.box]) S2.vals[S2.box] = ''; else if (S2.box > 0) { S2.box--; S2.vals[S2.box] = ''; } }
-    else S2.vals[S2.box] = (S2.vals[S2.box] + d).slice(-2).replace(/^0(\d)/, '$1');
+    else { S2.vals[S2.box] = d; if (S2.box < S2.vals.length - 1) S2.box++; }   // one digit per box, then the next box is selected automatically
     drawWrite();
   }
   async function check() {
@@ -566,7 +566,7 @@
   async function rideSilhouette(rid) {
     // same mine-tunnel journey as Level 1 (timbers, lanterns, rails), Chiku riding to the next gem
     const nx = ROUNDS[S2.r + 1], nm = nx.name[1];
-    await tunnelRide(`Practice ${S2.r + 2} · ${nm[0].toUpperCase() + nm.slice(1)}`, ['Chiku']);
+    await tunnelRide('', ['Chiku']);   // no sign in Level 2
     if (!alive(rid)) return;
     $('l2Cart').querySelector('.load').innerHTML = '';
     placeChiku(CH.home, true);
@@ -586,18 +586,19 @@
   }
   function finale(rid) {
     S2.phase = 'end'; S2.r = ROUNDS.length; setProgress(); clearTimeout(S2.idleT); handHide();
-    $('l2Stones').innerHTML = ''; setPlank('Level 2 complete!', true); $('l2Done').hidden = true; $('l2Keys').hidden = true;
-    SFX.good(); confetti(60); setTimeout(() => confetti(40), 900);
-    const list = ROUNDS.map(r => `<div><span class="tk">✔</span>${mixHTML(r)}<em>${r.name[1]}</em></div>`).join('');
-    const b = $('l2Board');
-    b.innerHTML = `<div style="text-align:center"><h3>Cart full of gems!</h3>
-      <p class="ptip" style="max-width:none;color:#5A2E0E">Every order on the list is done: whole gems first, then the extra parts. These are mixed fractions!</p>
-      <div class="sumList">${list}</div>
-      <div style="display:flex;gap:30px;justify-content:center"><button class="plankBtn" id="l2again">Play again</button><button class="plankBtn" id="l2back">Level 1</button></div></div>`;
-    b.style.width = '1560px'; b.style.top = '200px'; if ($('l2List')) $('l2List').hidden = true;   // the summary board replaces the record card b.hidden = false; $('l2Dim').hidden = false;
-    $('l2again').onclick = () => { if (S2.phase !== 'end') return; S2.phase = 'off'; SFX.tap(); start({ intro: false }); };
+    $('l2Keys').hidden = true; $('l2Board').hidden = true; $('l2Dim').hidden = true;
+    // celebration screen: Chiku with the cart full of gems (art has the thank-you line on it)
+    let F = $('l2Fin');
+    if (!F) { F = document.createElement('div'); F.id = 'l2Fin'; $('lvl2').appendChild(F); }
+    F.innerHTML = `<img class="bg" src="${IMG}backgrounds/finale_chiku.jpg" alt="Chiku waves next to a cart full of gems: We have collected many gemstones. Now we can go home. Thank you for your help!">
+      <div class="finBtns" hidden><button class="plankBtn" id="l2again">Play again</button><button class="plankBtn" id="l2back">Level 1</button></div>`;
+    F.hidden = false;
+    F.animate([{ opacity: 0, transform: 'scale(1.08)' }, { opacity: 1, transform: 'none' }], { duration: 900, easing: 'ease-out' });
+    SFX.good(); SFX.sparkle(); confetti(60); setTimeout(() => confetti(50), 1200); setTimeout(() => { confetti(50); SFX.good(); }, 2600);
+    $('l2again').onclick = () => { if (S2.phase !== 'end') return; S2.phase = 'off'; SFX.tap(); F.hidden = true; start({ intro: false }); };
     $('l2back').onclick = () => { SFX.tap(); location.href = location.pathname + location.search.replace(/[?&]lvl=2/, ''); };
-    say('Every order on the list is done! Great mining!');
+    speak('Hooray! We have collected many gemstones. Now we can go home. Thank you for your help!', 'Chiku')
+      .then(() => { const bt = F.querySelector('.finBtns'); if (bt && S2.phase === 'end') { bt.hidden = false; bt.animate([{ opacity: 0, transform: 'translateY(30px)' }, { opacity: 1, transform: 'none' }], { duration: 400 }); } });
   }
 
   /* ---------------- controls ---------------- */
@@ -616,7 +617,7 @@
     if ($('l2Bobo')) { placeBobo(BO.home, true); $('l2Bobo').className = 'idle'; }
     $('l2Cart').querySelector('.load').innerHTML = ''; placeChiku(CH.home, true); if ($('l2List')) $('l2List').hidden = false;
     if (S2.r > 0 && S2.phase !== 'end') return loadRound(S2.r - 1, rid);
-    if (S2.phase === 'end') return loadRound(ROUNDS.length - 1, rid);
+    if (S2.phase === 'end') { if ($('l2Fin')) $('l2Fin').hidden = true; return loadRound(ROUNDS.length - 1, rid); }
     window.L2.start();
   };
   $('l2Pause').onclick = () => { SFX.tap(); S2.paused = true; hush(); clearTimeout(S2.idleT); handHide(); $('l2Paused').hidden = false; };

@@ -123,7 +123,8 @@
           return done(res);
         }
         tries++;
-        oops(b, a === q.d && bb === q.n ? 'Top and bottom are swapped!' : 'Oops! Try again.');
+        // red glow + wiggle on the tapped card only (no 'Oops' badge on top of the board)
+        SFX.bad(); b.classList.remove('fbRed'); void b.offsetWidth; b.classList.add('fbRed'); wig(b); setTimeout(() => b.classList.remove('fbRed'), 1600);
         if (tries === 1) { await line(r, 'Chiku', a === q.d && bb === q.n ? 'Careful, the top and bottom are swapped!' : 'Oops! Try again.'); }
         else {
           $('tqTip').innerHTML = `<span class="hintInline"><b class="bulb">💡</b><span class="fr hintFr"><i>total number of pieces</i><i>number of pieces that make 1 whole</i></span></span>`;

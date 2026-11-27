@@ -743,7 +743,9 @@ function bindTrace() {
   const svg = $('big');
   const toS = e => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
   let lastChalk = 0, pts = null;
+  svg.addEventListener('touchmove', e => e.preventDefault(), { passive: false });   // never scroll the page while tracing
   svg.onpointerdown = e => {
+    if (e.preventDefault) e.preventDefault();
     if (!S.n || !S.pickOk || S.busy || S.traced.every(t => t >= 1)) return;
     svg.setPointerCapture(e.pointerId); stopIdle(); tip('');
     const p = toS(e); pts = [[p.x, p.y]]; S.active = 0; drawBig(pts);
@@ -1141,7 +1143,7 @@ function openName() {
       <div class="col"><div class="pad" id="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => `<button data-d="${d}">${d}</button>`).join('')}<button data-d="del" class="del" aria-label="Delete">⌫</button><button data-d="0">0</button><button data-d="clr" class="del" aria-label="Clear">C</button><button data-d="ok" class="ok">Check</button></div></div>
       <svg class="arrows" id="arrows"></svg>
     </div><p class="ptip" id="ptip" style="max-width:none;margin-top:8px"></p>`, 1560);
-  $('bxtop').onclick = () => { SFX.tap(); selBox('top'); }; $('bxbot').onclick = () => { SFX.tap(); selBox('bot'); };
+  $('bxtop').onclick = () => { if (S.nameLock) return; SFX.tap(); selBox('top'); }; $('bxbot').onclick = () => { if (S.nameLock) return; SFX.tap(); selBox('bot'); };
   $('pad').querySelectorAll('button').forEach(b => b.onclick = () => padPress(b.dataset.d));
   // the miner holds up their tray and shows it, then the question is asked
   const tray = document.querySelector('.showTray'), whoEl = document.querySelector('.showWho');
@@ -1159,12 +1161,14 @@ function openName() {
 }
 function selBox(k) { S.box = k; $('bxtop').classList.toggle('sel', k == 'top'); $('bxbot').classList.toggle('sel', k == 'bot'); }
 function padPress(d) {
-  if (S.busy) return; SFX.tap();
+  if (S.busy) return;
+  if (S.nameLock && d != 'ok') return;   // answer is locked in: only Check works
+  SFX.tap();
   idle({ who: L().ask, text: 'Fill in the boxes.', target: () => (S.val.top && S.val.bot) ? $('pad').querySelector('.ok') : $(S.val.top ? 'bxbot' : 'bxtop') });
   if (d == 'ok') return checkName();
   if (d == 'clr') { S.val = { top: '', bot: '' }; selBox('top'); }
   else if (d == 'del') { if (S.val[S.box]) S.val[S.box] = ''; else if (S.box == 'bot') { selBox('top'); S.val.top = ''; } }
-  else { S.val[S.box] = (S.val[S.box] + d).slice(-2).replace(/^0(\d)/, '$1'); if (S.box == 'top') selBox('bot'); }
+  else { S.val[S.box] = d; if (S.box == 'top') selBox('bot'); }   // one digit per box, then move on automatically
   $('bxtop').textContent = S.val.top; $('bxbot').textContent = S.val.bot; tip('');
 }
 async function checkName() {
@@ -1179,8 +1183,22 @@ async function checkName() {
     await sleep(600); if (rid !== RUN) return;
     S.busy = false; rideOn(rid); return;
   }
+  if (S.nameLock) return;
   S.nameTries++;
   const fr = $('frac'); fr.classList.add('bad');
+  // 3rd wrong answer: the right answer stays in the boxes and only Check works (no endless loop)
+  if (S.nameTries >= 3) {
+    oops(fr); S.nameLock = true; stopIdle(); hideHint();
+    setTimeout(() => {
+      fr.classList.remove('bad'); if (!$('bxtop')) return;
+      S.val = { top: c, bot: m }; $('bxtop').textContent = c; $('bxbot').textContent = m; selBox('bot');
+      $('pad').querySelectorAll('button').forEach(b => { if (b.dataset.d !== 'ok') { b.disabled = true; b.classList.add('locked'); } else b.classList.add('pulse'); });
+      [$('bxtop'), $('bxbot')].forEach(b => b.classList.add('locked'));
+    }, 900);
+    await say(Lv.ask, `The answer is ${c} over ${m}: ${c} pieces in all, and ${m} pieces make one whole. Tap Check to go on.`); if (rid !== RUN) return;
+    if ($('pad')) handTapOn($('pad').querySelector('.ok'));
+    return;
+  }
   setTimeout(() => { fr.classList.remove('bad'); S.val = { top: '', bot: '' }; if ($('bxtop')) { $('bxtop').textContent = ''; $('bxbot').textContent = ''; selBox('top'); } }, 900);
   const hintLine = tut() ? `Bottom: how many pieces each ruby was cut into. Top: how many pieces on Bobo’s tray.`
     : `Bottom: pieces each ${Lv.gem} was cut into. Top: pieces on ${who}’s tray.`;
@@ -1188,7 +1206,7 @@ async function checkName() {
   if (top == m && bot == c) { oops($('frac'), 'Top and bottom are swapped!'); await say(Lv.ask, 'Careful, the top and bottom are swapped!'); if (rid !== RUN) return; }
   else if (S.nameTries == 1) { oops($('frac')); say(Lv.ask, 'Oops! Try again.'); return; }
   else oops($('frac'));
-  if (S.nameTries >= 2) { say(Lv.ask, 'Top: the total number of pieces. Bottom: the number of pieces that make one whole.'); showArrows(rid); }
+  if (S.nameTries >= 2) showArrows(rid);   // the hint speaks for itself (explain, then count with the child)
 }
 async function showArrows(rid) {
   S.busy = true; stopIdle();
@@ -1201,14 +1219,35 @@ async function showArrows(rid) {
   const wT = pt($('wfTop'), 0, .5), wB = pt($('wfBot'), .5, 1), gT = pt(og, .5, 0);
   const up = `<path d="M${gT[0]} ${gT[1] + 4} L${wB[0]} ${wB[1] + 10}" fill="none" stroke="#2F63DB" stroke-width="7" stroke-linecap="round" stroke-dasharray="14 10"><animate attributeName="stroke-dashoffset" from="48" to="0" dur=".8s" repeatCount="indefinite"/></path>`;
   svg.innerHTML = up + arrow(wT, tp, '#E07A26');
-  await sleep(2600); if (rid !== RUN) return;
+  const who = L().ask, n = S.n;
+  await say(who, 'Numerator is the total number of pieces, and denominator is the number of pieces that make one whole.'); if (rid !== RUN) return;
+  // 1) count the pieces on the tray
+  $('wfTop').classList.add('wfOn');
+  await say(who, 'Let’s count the total number of pieces with me.'); if (rid !== RUN) return;
   const pcs = [...$('tipped').querySelectorAll('.pc')];
   for (let i = 0; i < pcs.length; i++) {
     if (rid !== RUN) return;
     pcs[i].classList.add('lit'); pcs[i].insertAdjacentHTML('beforeend', `<i>${i + 1}</i>`); SFX.coin();
-    await speak(String(i + 1), L().ask);
+    await speak(i === pcs.length - 1 && i > 0 ? `and ${i + 1}` : String(i + 1), who);
   }
+  $('wfTop').classList.remove('wfOn'); if (rid !== RUN) return;
+  // 2) count the pieces of one complete whole (numbers appear on the cut gem)
+  $('wfBot').classList.add('wfOn');
+  await say(who, 'And now let’s count the number of pieces of one complete whole.'); if (rid !== RUN) return;
+  const gsvg = og.querySelector('svg'), st = stage.getBoundingClientRect();
+  const marks = pieces(L().shape, n).map(cent).sort((a, b) => Math.abs(a[1] - b[1]) > 12 ? a[1] - b[1] : a[0] - b[0]).map(c => {   // count left→right, top→bottom
+    const q = gsvg.createSVGPoint(); q.x = c[0]; q.y = c[1]; const r = q.matrixTransform(gsvg.getScreenCTM());
+    const m = document.createElement('div'); m.className = 'ogNum'; m.style.left = ((r.x - st.left) / SCALE) + 'px'; m.style.top = ((r.y - st.top) / SCALE) + 'px'; return m;
+  });
+  for (let k = 0; k < marks.length; k++) {
+    if (rid !== RUN) { marks.forEach(m => m.remove()); return; }
+    marks[k].textContent = k + 1; stage.appendChild(marks[k]); SFX.coin();
+    await speak(k === marks.length - 1 && k > 0 ? `and ${k + 1}` : String(k + 1), who);
+  }
+  $('wfBot').classList.remove('wfOn');
+  setTimeout(() => marks.forEach(m => m.remove()), 2500);
   if (rid !== RUN) return;
+  say(who, 'Now fill in the boxes.');
   S.busy = false; idle({ who: L().ask, text: 'Fill in the boxes.', target: () => $('bxtop') });
 }
 
@@ -1292,7 +1331,7 @@ function trainHTML(crew) {
 }
 async function tunnelRide(caption, crew = ['Chiku', 'Bobo'], onArrive) {
   const T = $('tunnel'); T.hidden = false;
-  const cap = $('tunnelCap'); cap.textContent = caption; cap.style.opacity = 0; cap.style.animation = 'none';
+  const cap = $('tunnelCap'); cap.textContent = caption; cap.hidden = !caption; cap.style.opacity = 0; cap.style.animation = 'none';
   const anims = [], A = (el, kf, o) => { const x = el.animate(kf, o); anims.push(x); return x; };
   SFX.rumble(5.5); SFX.clack(5.2);
   // ---- 2) side view journey ----
